@@ -9,9 +9,11 @@ use_plugin("python.distutils")
 
 
 name = "ultimate-source-of-accounts"
-default_task = "publish"
+default_task = ["clean", "analyze"]
 
 
 @init
 def set_properties(project):
-    pass
+    project.set_property('install_dependencies_upgrade', True)
+    project.build_depends_on("unittest2")
+
