@@ -4,7 +4,9 @@ from __future__ import print_function, absolute_import, division
 from mock import patch
 from unittest2 import TestCase
 import tempfile
+import shutil
 import os
+import yaml
 
 import ultimate_source_of_accounts.account_importer as ai
 
@@ -35,19 +37,36 @@ class AccountImportTest(TestCase):
         self.assertRaises(Exception, ai._check_account_data, account_data)
 
     def test_accept_valid_data(self):
-        account_data = {"account_name1": {"id": 42, "email": "test.test@test.test"},
-                        "account_name2": {"id": 43, "email": "täst.test@test.test"}}
+        account_data = {"account_name1": {"id": 42, "email": "test.test@test.test"}}
         ai._check_account_data(account_data)
 
     @patch("ultimate_source_of_accounts.account_importer._check_account_data")
     def test_loaded_data_is_checked(self, mock_check_account):
         directory = tempfile.mkdtemp()
         filename = "account.yaml"
-        content = "42"
+        content = "ab42"
 
-        with open(os.path.join(directory, filename), "w") as test_file:
-            test_file.write(content)
+        try:
+            with open(os.path.join(directory, filename), "w") as test_file:
+                test_file.write(content)
 
-        ai.read_directory(directory)
+            ai.read_directory(directory)
 
-        mock_check_account.assert_called_once_with(content)
+            mock_check_account.assert_called_once_with(content)
+        finally:
+            shutil.rmtree(directory)
+
+    def test_loaded_data_is_returned_data(self):
+        directory = tempfile.mkdtemp()
+        filename = "account.yaml"
+        content = {"account_name": {"id": 42, "email": "test.test@test.test"}}
+
+        try:
+            with open(os.path.join(directory, filename), "w") as test_file:
+                test_file.write(yaml.dump(content))
+
+            result = ai.read_directory(directory)
+
+            self.assertEqual(content, result)
+        finally:
+            shutil.rmtree(directory)
