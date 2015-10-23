@@ -57,7 +57,7 @@ class AccountExporterTest(TestCase):
 
         key = boto.s3.key.Key(bucket)
         key.key = "foobar"
-        result = key.get_contents_as_string()
+        result = key.get_contents_as_string(encoding="utf-8")
 
         self.assertEqual('This is a test of USofA', result)
 
@@ -84,7 +84,7 @@ class AccountExporterTest(TestCase):
         key = boto.s3.key.Key(bucket)
         key.key = bucket.get_key("foo")
 
-        result = key.get_contents_as_string()
+        result = key.get_contents_as_string(encoding="utf-8")
 
         self.assertEqual(result, "bar")
 
@@ -118,6 +118,6 @@ class AccountExporterTest(TestCase):
 
         self.s3_uploader.set_S3_permissions()
         bucket = conn.get_bucket(self.bucket_name)
-        policy = json.loads(bucket.get_policy())
+        policy = bucket.get_policy().decode("utf-8")
 
-        self.assertEqual(expected_policy, policy)
+        self.assertEqual(expected_policy, json.loads(policy))
