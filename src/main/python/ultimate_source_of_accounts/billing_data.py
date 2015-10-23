@@ -7,4 +7,3 @@ from __future__ import print_function, absolute_import, division
 
 def read_xml_and_return_account_ids(xml_file_path):
     pass
-

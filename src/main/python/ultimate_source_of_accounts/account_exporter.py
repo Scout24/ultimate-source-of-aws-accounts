@@ -6,6 +6,7 @@ import json
 
 BUCKET_REGION = "eu-west-1"
 
+
 class S3Uploader(object):
 
     def __init__(self, bucket_name, writer_arn, allowed_ips=None, allowed_aws_account_ids=None):
@@ -27,14 +28,14 @@ class S3Uploader(object):
             "Id": "Policy1445612972351",
             "Version": "2012-10-17",
             "Statement": [{
-              "Sid": "Stmt1445612964522",
-              "Action": [
-                "s3:GetBucketLocation",
-                "s3:GetBucketNotification",
-                "s3:GetBucketRequestPayment",
-                "s3:GetBucketWebsite",
-                "s3:GetObject",
-                "s3:ListBucket"
+                "Sid": "Stmt1445612964522",
+                "Action": [
+                    "s3:GetBucketLocation",
+                    "s3:GetBucketNotification",
+                    "s3:GetBucketRequestPayment",
+                    "s3:GetBucketWebsite",
+                    "s3:GetObject",
+                    "s3:ListBucket"
                 ],
                 "Effect": "Allow",
                 "Resource": [
