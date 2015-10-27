@@ -44,28 +44,7 @@ class S3Uploader(object):
                 "Principal": {
                     "AWS": self.allowed_aws_account_ids
                 }
-            },
-                {
-                    "Sid": "Stmt1445940154105",
-                    "Action": [
-                        "s3:GetBucketLocation",
-                        "s3:GetBucketNotification",
-                        "s3:GetBucketRequestPayment",
-                        "s3:GetBucketWebsite",
-                        "s3:GetObject",
-                        "s3:ListBucket"
-                    ],
-                    "Effect": "Allow",
-                    "Resource": "arn:aws:s3:::abc/*",
-                    "Condition": {
-                        "IpAddress": {
-                            "aws:SourceIp": ["127.0.0.1"]
-                        }
-                    },
-                    "Principal": {
-                        "AWS": "*"
-                    }
-                }
+            }
             ]
         }
 
