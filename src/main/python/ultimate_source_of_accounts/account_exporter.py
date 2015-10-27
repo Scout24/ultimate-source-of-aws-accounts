@@ -8,7 +8,6 @@ BUCKET_REGION = "eu-west-1"
 
 
 class S3Uploader(object):
-
     def __init__(self, bucket_name, writer_arn, allowed_ips=None, allowed_aws_account_ids=None):
         self.bucket_name = bucket_name
         self.writer_arn = writer_arn
@@ -45,7 +44,29 @@ class S3Uploader(object):
                 "Principal": {
                     "AWS": self.allowed_aws_account_ids
                 }
-            }]
+            },
+                {
+                    "Sid": "Stmt1445940154105",
+                    "Action": [
+                        "s3:GetBucketLocation",
+                        "s3:GetBucketNotification",
+                        "s3:GetBucketRequestPayment",
+                        "s3:GetBucketWebsite",
+                        "s3:GetObject",
+                        "s3:ListBucket"
+                    ],
+                    "Effect": "Allow",
+                    "Resource": "arn:aws:s3:::abc/*",
+                    "Condition": {
+                        "IpAddress": {
+                            "aws:SourceIp": ["127.0.0.1"]
+                        }
+                    },
+                    "Principal": {
+                        "AWS": "*"
+                    }
+                }
+            ]
         }
 
         bucket = self.conn.get_bucket(self.bucket_name)

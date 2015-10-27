@@ -15,7 +15,7 @@ class AccountConverterTest(TestCase):
 
         result = ac.get_converted_aws_accounts(account_data)
         yaml_result = result["usofa.yaml"]
-        decoded_result = yaml.load(yaml_result)
+        decoded_result = yaml.safe_load(yaml_result)
 
         self.assertEqual(decoded_result, account_data)
 
