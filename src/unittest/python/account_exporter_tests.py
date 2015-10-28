@@ -10,8 +10,8 @@ import ultimate_source_of_accounts.account_exporter as ae
 
 BUCKET_REGION = "us-west-2"
 
-class AccountExporterTest(TestCase):
 
+class AccountExporterTest(TestCase):
     @mock_s3
     def setUp(self):
         self.old_bucket_region = ae.BUCKET_REGION
@@ -19,13 +19,10 @@ class AccountExporterTest(TestCase):
         self.bucket_name = "testbucket"
         self.allowed_ips = ["123.131.124.5"]
         self.allowed_aws_account_ids = ["123456789"]
-        self.writer_arn = "arn:aws:iam::12346798:role/my_abc"
 
         self.s3_uploader = ae.S3Uploader(self.bucket_name,
-                                    self.writer_arn,
-                                    allowed_ips=self.allowed_ips,
-                                    allowed_aws_account_ids=self.allowed_aws_account_ids)
-
+                                         allowed_ips=self.allowed_ips,
+                                         allowed_aws_account_ids=self.allowed_aws_account_ids)
 
     @mock_s3
     def test_create_S3_bucket_if_bucket_not_exists(self):
@@ -93,17 +90,12 @@ class AccountExporterTest(TestCase):
         conn = boto.s3.connect_to_region(BUCKET_REGION)
         conn.create_bucket(self.bucket_name)
         expected_policy = {
-            "Id": "Policy1445612972351",
             "Version": "2012-10-17",
             "Statement": [{
-              "Sid": "Stmt1445612964522",
-              "Action": [
-                "s3:GetBucketLocation",
-                "s3:GetBucketNotification",
-                "s3:GetBucketRequestPayment",
-                "s3:GetBucketWebsite",
-                "s3:GetObject",
-                "s3:ListBucket"
+                "Action": [
+                    "s3:GetBucketWebsite",
+                    "s3:GetObject",
+                    "s3:ListBucket"
                 ],
                 "Effect": "Allow",
                 "Resource": [
@@ -113,7 +105,28 @@ class AccountExporterTest(TestCase):
                 "Principal": {
                     "AWS": self.allowed_aws_account_ids
                 }
-            }]
+            },
+                {
+                    "Action": [
+                        "s3:GetBucketWebsite",
+                        "s3:GetObject",
+                        "s3:ListBucket"
+                    ],
+                    "Effect": "Allow",
+                    "Resource": [
+                        "arn:aws:s3:::{0}/*".format(self.bucket_name),
+                        "arn:aws:s3:::{0}".format(self.bucket_name)
+                    ],
+                    "Condition": {
+                        "IpAddress": {
+                            "aws:SourceIp": self.allowed_ips
+                        }
+                    },
+                    "Principal": {
+                        "AWS": "*"
+                    }
+                }
+            ]
         }
 
         self.s3_uploader.set_S3_permissions()

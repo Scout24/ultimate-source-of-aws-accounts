@@ -8,9 +8,8 @@ BUCKET_REGION = "eu-west-1"
 
 
 class S3Uploader(object):
-    def __init__(self, bucket_name, writer_arn, allowed_ips=None, allowed_aws_account_ids=None):
+    def __init__(self, bucket_name, allowed_ips=None, allowed_aws_account_ids=None):
         self.bucket_name = bucket_name
-        self.writer_arn = writer_arn
         self.allowed_ips = allowed_ips or []
         self.allowed_aws_account_ids = allowed_aws_account_ids or []
         self.conn = boto.s3.connect_to_region(BUCKET_REGION)
@@ -24,14 +23,9 @@ class S3Uploader(object):
 
     def set_S3_permissions(self):
         policy = {
-            "Id": "Policy1445612972351",
             "Version": "2012-10-17",
             "Statement": [{
-                "Sid": "Stmt1445612964522",
                 "Action": [
-                    "s3:GetBucketLocation",
-                    "s3:GetBucketNotification",
-                    "s3:GetBucketRequestPayment",
                     "s3:GetBucketWebsite",
                     "s3:GetObject",
                     "s3:ListBucket"
@@ -43,6 +37,26 @@ class S3Uploader(object):
                 ],
                 "Principal": {
                     "AWS": self.allowed_aws_account_ids
+                }
+            },
+            {
+                "Action": [
+                    "s3:GetBucketWebsite",
+                    "s3:GetObject",
+                    "s3:ListBucket"
+                ],
+                "Effect": "Allow",
+                "Resource": [
+                    "arn:aws:s3:::{0}/*".format(self.bucket_name),
+                    "arn:aws:s3:::{0}".format(self.bucket_name)
+                ],
+                "Condition": {
+                    "IpAddress": {
+                        "aws:SourceIp": self.allowed_ips
+                    }
+                },
+                "Principal": {
+                    "AWS": "*"
                 }
             }
             ]
@@ -61,3 +75,5 @@ class S3Uploader(object):
         for key_name, content in upload_data.items():
             key.key = key_name
             key.set_contents_from_string(content)
+
+
