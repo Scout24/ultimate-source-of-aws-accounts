@@ -14,7 +14,7 @@ class AccountConverterTest(TestCase):
         account_data = {"account_name1": {"id": 42, "email": "test.test@test.test"}}
 
         result = ac.get_converted_aws_accounts(account_data)
-        yaml_result = result["usofa.yaml"]
+        yaml_result = result["accounts.yaml"]
         decoded_result = yaml.safe_load(yaml_result)
 
         self.assertEqual(decoded_result, account_data)
@@ -23,7 +23,7 @@ class AccountConverterTest(TestCase):
         account_data = {"account_name1": {"id": 42, "email": "test.test@test.test"}}
 
         result = ac.get_converted_aws_accounts(account_data)
-        json_result = result["usofa.json"]
+        json_result = result["accounts.json"]
         decoded_result = json.loads(json_result)
 
         self.assertEqual(decoded_result, account_data)

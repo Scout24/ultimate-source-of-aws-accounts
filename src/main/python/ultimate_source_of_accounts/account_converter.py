@@ -6,11 +6,13 @@ import json
 
 """ This module export AWS account information (account id, account name, account email) into an file. """
 
+FILENAME = "accounts"
+
 
 def get_converted_aws_accounts(accounts):
     """ Return converted AWS account data """
 
     return {
-        "usofa.yaml": yaml.dump(accounts),
-        "usofa.json": json.dumps(accounts)
-        }
+        "{filename}.yaml".format(filename=FILENAME): yaml.dump(accounts),
+        "{filename}.json".format(filename=FILENAME): json.dumps(accounts)
+    }
