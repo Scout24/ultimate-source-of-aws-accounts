@@ -38,8 +38,7 @@ def upload(data_directory, destination_bucket_name, allowed_ips=None):
     data_to_upload = get_converted_aws_accounts(account_data)
 
     our_account_ids = [account['id'] for account in account_data.values()]
-    # TODO: do we need the writer arn?
-    uploader = S3Uploader(destination_bucket_name, 'some-random-writer-arn',
+    uploader = S3Uploader(destination_bucket_name,
                           allowed_ips=allowed_ips,
                           allowed_aws_account_ids=our_account_ids)
 

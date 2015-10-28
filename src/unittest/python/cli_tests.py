@@ -47,7 +47,7 @@ class UploadTest(TestCase):
         cli._main(self.arguments)
 
         mock_exporter_class.assert_called_once_with(
-                "bucketname42", "some-random-writer-arn",
+                "bucketname42",
                 allowed_ips=["123", "345"],
                 allowed_aws_account_ids=[42])
 
