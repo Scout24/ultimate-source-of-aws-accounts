@@ -38,8 +38,7 @@ class S3Uploader(object):
                 "Principal": {
                     "AWS": self.allowed_aws_account_ids
                 }
-            },
-            {
+            }, {
                 "Action": [
                     "s3:GetBucketWebsite",
                     "s3:GetObject",
@@ -75,5 +74,3 @@ class S3Uploader(object):
         for key_name, content in upload_data.items():
             key.key = key_name
             key.set_contents_from_string(content)
-
-

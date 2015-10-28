@@ -42,11 +42,11 @@ def upload(data_directory, destination_bucket_name, allowed_ips=None):
                           allowed_ips=allowed_ips,
                           allowed_aws_account_ids=our_account_ids)
 
-
     uploader.create_bucket()
     uploader.set_S3_permission()
     uploader.upload_to_S3(data_to_upload)
     uploader.setup_S3_webserver()
+
 
 def _main(arguments):
     if arguments['--check-billing']:
@@ -63,4 +63,3 @@ def _main(arguments):
 def main():
     arguments = docopt(__doc__)
     _main(arguments)
-
