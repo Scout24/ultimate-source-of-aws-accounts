@@ -5,10 +5,16 @@ from unittest2 import TestCase
 from moto import mock_s3
 import boto
 import json
+import os
 
 import ultimate_source_of_accounts.account_exporter as ae
 
 BUCKET_REGION = "us-west-2"
+
+# Else we run into problems with mocking
+os.environ['http_proxy'] = ''
+os.environ['https_proxy'] = ''
+os.environ['no_proxy'] = ''
 
 
 class AccountExporterTest(TestCase):
