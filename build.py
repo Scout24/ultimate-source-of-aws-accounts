@@ -12,6 +12,7 @@ use_plugin('python.cram')
 
 
 name = "ultimate-source-of-accounts"
+description = "Upload information about your AWS accounts to an S3 bucket"
 default_task = ["clean", "analyze", "run_cram_tests"]
 
 
@@ -26,7 +27,7 @@ def set_properties(project):
     project.depends_on("boto")
     project.depends_on("docopt")
 
-    project.set_property('distutils_console_scripts', ['usofa=ultimate_source_of_accounts.cli:main'])
+    project.set_property('distutils_console_scripts', ['ultimate-source-of-accounts=ultimate_source_of_accounts.cli:main'])
     project.set_property('flake8_break_build', True)
 
 
