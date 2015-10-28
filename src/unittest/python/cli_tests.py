@@ -6,6 +6,7 @@ import os
 import shutil
 import tempfile
 
+import moto
 from mock import patch, Mock
 from unittest2 import TestCase
 
@@ -39,6 +40,7 @@ class UploadTest(TestCase):
     @patch("ultimate_source_of_accounts.cli.get_converted_aws_accounts")
     @patch("ultimate_source_of_accounts.cli.S3Uploader")
     def test_upload_calls_all_upload_tasks(self, mock_exporter_class, mock_converter):
+        """Mock away S3 Uploader, see if all necessary methods were called"""
         mock_converter.return_value = {"foo": "bar"}
 
         mock_exporter_instance = Mock()
@@ -51,10 +53,18 @@ class UploadTest(TestCase):
                 allowed_ips=["123", "345"],
                 allowed_aws_account_ids=[42])
 
-        mock_exporter_instance.create_bucket.assert_called_once_with()
+        mock_exporter_instance.create_S3_bucket.assert_called_once_with()
         mock_exporter_instance.upload_to_S3.assert_called_once_with({'foo': 'bar'})
-        mock_exporter_instance.set_S3_permission.assert_called_once_with()
+        mock_exporter_instance.set_S3_permissions.assert_called_once_with()
         mock_exporter_instance.setup_S3_webserver.assert_called_once_with()
+
+    @patch("ultimate_source_of_accounts.cli.get_converted_aws_accounts")
+    @moto.mock_s3
+    def test_upload_uses_S3Uploader_correctly(self, mock_converter):
+        """Check if the 'necessary methods' used above actually exist on S3Uploader"""
+        mock_converter.return_value = {"foo": "bar"}
+
+        cli._main(self.arguments)
 
 
 class CheckTest(TestCase):

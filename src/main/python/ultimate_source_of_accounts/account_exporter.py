@@ -17,7 +17,7 @@ class S3Uploader(object):
     def create_S3_bucket(self):
         """ Create a new S3 bucket if bucket not exists else nothing """
         try:
-            self.conn.create_bucket(self.bucket_name)
+            self.conn.create_bucket(self.bucket_name, location=BUCKET_REGION)
         except boto.exception.S3CreateError:
             pass
 
