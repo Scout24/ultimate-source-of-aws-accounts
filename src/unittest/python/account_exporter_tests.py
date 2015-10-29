@@ -6,6 +6,7 @@ from moto import mock_s3
 import boto
 import json
 import os
+import time
 
 import ultimate_source_of_accounts.account_exporter as ae
 
@@ -140,3 +141,19 @@ class AccountExporterTest(TestCase):
         policy = bucket.get_policy().decode("utf-8")
 
         self.assertEqual(expected_policy, json.loads(policy))
+
+    @mock_s3
+    def test_setup_S3_webserver(self):
+        upload_data = {"foo": "bar"}
+        conn = boto.s3.connect_to_region(BUCKET_REGION)
+
+        # self.s3_uploader.create_S3_bucket()
+        self.s3_uploader.set_S3_permissions()
+        self.s3_uploader.upload_to_S3(upload_data)
+        self.s3_uploader.setup_S3_webserver()
+
+        # wait until the settings applied
+        time.sleep(5)
+        bucket = conn.get_bucket(self.bucket_name)
+        # now get the website configuration, just to check it
+        print(bucket.get_website_configuration())

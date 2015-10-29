@@ -65,7 +65,34 @@ class S3Uploader(object):
         bucket.set_policy(json.dumps(policy))
 
     def setup_S3_webserver(self):
-        pass
+        bucket = self.conn.get_bucket(self.bucket_name)
+
+        index_key = bucket.new_key('accounts.json')
+        index_key.content_type = 'application/json'
+
+        routing_rules = '''
+<RoutingRules>
+    <RoutingRule>
+        <Condition>
+            <KeyPrefixEquals>yaml</KeyPrefixEquals>
+        </Condition>
+        <Redirect>
+        <ReplaceKeyPrefixWith>accounts.yaml</ReplaceKeyPrefixWith>
+        </Redirect>
+    </RoutingRule>
+    <RoutingRule>
+        <Condition>
+            <KeyPrefixEquals>json</KeyPrefixEquals>
+        </Condition>
+        <Redirect>
+        <ReplaceKeyPrefixWith>accounts.json</ReplaceKeyPrefixWith>
+        </Redirect>
+    </RoutingRule>
+</RoutingRules>
+        '''
+
+        # now set the website configuration for our bucket
+        bucket.configure_website(suffix='accounts.json')
 
     def upload_to_S3(self, upload_data):
         bucket = self.conn.get_bucket(self.bucket_name)
