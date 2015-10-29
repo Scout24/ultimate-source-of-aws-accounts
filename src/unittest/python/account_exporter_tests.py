@@ -147,7 +147,7 @@ class AccountExporterTest(TestCase):
         upload_data = {"foo": "bar"}
         conn = boto.s3.connect_to_region(BUCKET_REGION)
 
-        # self.s3_uploader.create_S3_bucket()
+        self.s3_uploader.create_S3_bucket()
         self.s3_uploader.set_S3_permissions()
         self.s3_uploader.upload_to_S3(upload_data)
         self.s3_uploader.setup_S3_webserver()

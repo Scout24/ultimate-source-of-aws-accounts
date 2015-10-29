@@ -92,7 +92,7 @@ class S3Uploader(object):
         '''
 
         # now set the website configuration for our bucket
-        bucket.configure_website(suffix='accounts.json')
+        bucket.configure_website(suffix='accounts.json', routing_rules=routing_rules)
 
     def upload_to_S3(self, upload_data):
         bucket = self.conn.get_bucket(self.bucket_name)
