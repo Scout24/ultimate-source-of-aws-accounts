@@ -35,7 +35,7 @@ class UploadTest(TestCase):
 
         cli._main(self.arguments)
 
-        mock_converter.assert_called_once_with({'my_account': {'id': 42, 'email': 'me@host.invalid'}})
+        mock_converter.assert_called_once_with({'my_account': {'id': '42', 'email': 'me@host.invalid'}})
 
     @patch("ultimate_source_of_accounts.cli.get_converted_aws_accounts")
     @patch("ultimate_source_of_accounts.cli.S3Uploader")
@@ -51,7 +51,7 @@ class UploadTest(TestCase):
         mock_exporter_class.assert_called_once_with(
                 "bucketname42",
                 allowed_ips=["123", "345"],
-                allowed_aws_account_ids=[42])
+                allowed_aws_account_ids=['42'])
 
         mock_exporter_instance.create_S3_bucket.assert_called_once_with()
         mock_exporter_instance.upload_to_S3.assert_called_once_with({'foo': 'bar'})

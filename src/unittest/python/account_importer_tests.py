@@ -17,14 +17,14 @@ class AccountImportTest(TestCase):
         self.assertRaises(Exception, ai._check_account_data, account_data)
 
     def test_raise_exception_when_account_data_without_email(self):
-        account_data = {"account_name": {"id": 42, "email": ""}}
+        account_data = {"account_name": {"id": "42", "email": ""}}
         self.assertRaises(Exception, ai._check_account_data, account_data)
 
-        account_data = {"account_name": {"id": 42}}
+        account_data = {"account_name": {"id": "42"}}
         self.assertRaises(Exception, ai._check_account_data, account_data)
 
     def test_raise_exception_when_account_data_with_invalid_email(self):
-        account_data = {"account_name": {"id": 42, "email": "test.testqtest.test"}}
+        account_data = {"account_name": {"id": "42", "email": "test.testqtest.test"}}
         self.assertRaises(Exception, ai._check_account_data, account_data)
 
     def test_raise_exception_when_account_data_without_account_id(self):
@@ -36,14 +36,35 @@ class AccountImportTest(TestCase):
         self.assertRaises(Exception, ai._check_account_data, account_data)
 
     def test_accept_valid_data(self):
-        account_data = {"account_name1": {"id": 42, "email": "test.test@test.test"}}
+        account_data = {"account_name1": {"id": "42", "email": "test.test@test.test"}}
         ai._check_account_data(account_data)
+
+    def test_account_id_is_converted_to_string(self):
+        directory = tempfile.mkdtemp()
+        filename = "account.yaml"
+        content = {
+            "account_name": {"id": 42, "email": "test.test@test.test"},
+            "another": {"id": "43", "email": "test.test@test.test"}}
+
+        try:
+            with open(os.path.join(directory, filename), "w") as test_file:
+                test_file.write(yaml.dump(content))
+
+            result = ai.read_directory(directory)
+
+            expected_content = content
+            # Must have been converted from int 42 to string "42".
+            expected_content['account_name']['id'] = '42'
+            self.assertEqual(expected_content, result)
+        finally:
+            shutil.rmtree(directory)
+
 
     @patch("ultimate_source_of_accounts.account_importer._check_account_data")
     def test_loaded_data_is_checked(self, mock_check_account):
         directory = tempfile.mkdtemp()
         filename = "account.yaml"
-        content = "ab42"
+        content = "account_one:\n  id: 1\n  email: one@s24.de"
 
         try:
             with open(os.path.join(directory, filename), "w") as test_file:
@@ -51,14 +72,14 @@ class AccountImportTest(TestCase):
 
             ai.read_directory(directory)
 
-            mock_check_account.assert_called_once_with(content)
+            mock_check_account.assert_called_once_with({'account_one': {'id': '1', 'email': 'one@s24.de'}})
         finally:
             shutil.rmtree(directory)
 
     def test_loaded_data_is_returned_data(self):
         directory = tempfile.mkdtemp()
         filename = "account.yaml"
-        content = {"account_name": {"id": 42, "email": "test.test@test.test"}}
+        content = {"account_name": {"id": "42", "email": "test.test@test.test"}}
 
         try:
             with open(os.path.join(directory, filename), "w") as test_file:
@@ -71,21 +92,32 @@ class AccountImportTest(TestCase):
             shutil.rmtree(directory)
 
     def test_raise_exception_when_account_has_the_same_account_id(self):
-        account_data = {"account_name1": {"id": 42, "email": "test.test@test.test"},
-                        "account_name2": {"id": 42, "email": "test2.test2@test.test"}}
+        directory = tempfile.mkdtemp()
+        filename = "account.yaml"
+        # Duplicates must be detected even if one item is given as a string,
+        # the other as integer.
+        content = {"account_name1": {"id": 42, "email": "test.test@test.test"},
+                   "account_name2": {"id": "42", "email": "test2.test2@test.test"}}
 
-        self.assertRaises(Exception, ai._check_account_data, account_data)
+        try:
+            with open(os.path.join(directory, filename), "w") as test_file:
+                test_file.write(yaml.dump(content))
+
+            self.assertRaises(Exception, ai.read_directory, directory)
+        finally:
+            shutil.rmtree(directory)
+
 
     def test_raise_exception_when_two_accounts_have_same_account_id(self):
-        account_data = {"account_name1": {"id": 42, "email": "test.test@test.test"},
-                        "account_name2": {"id": 43, "email": "test2.test2@test.test"},
-                        "account_name3": {"id": 42, "email": "test3.test2@test.test"},
-                        "account_name4": {"id": 43, "email": "test2.test2@test.test"}}
+        account_data = {"account_name1": {"id": "42", "email": "test.test@test.test"},
+                        "account_name2": {"id": "43", "email": "test2.test2@test.test"},
+                        "account_name3": {"id": "42", "email": "test3.test2@test.test"},
+                        "account_name4": {"id": "43", "email": "test2.test2@test.test"}}
 
         self.assertRaises(Exception, ai._check_account_data, account_data)
 
     def test_accounts_with_different_ids(self):
-        account_data = {"account_name1": {"id": 42, "email": "test.test@test.test"},
-                        "account_name2": {"id": 43, "email": "test2.test2@test.test"}}
+        account_data = {"account_name1": {"id": "42", "email": "test.test@test.test"},
+                        "account_name2": {"id": "43", "email": "test2.test2@test.test"}}
         ai._check_account_data(account_data)
 

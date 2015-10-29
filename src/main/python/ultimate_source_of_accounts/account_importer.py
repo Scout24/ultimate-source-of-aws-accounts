@@ -11,6 +11,9 @@ import yamlreader
 def read_directory(yaml_path):
     """ Read yaml files and return merged yaml files """
     accounts = yamlreader.yaml_load(yaml_path)
+
+    for account in accounts.values():
+        account['id'] = str(account['id'])
     _check_account_data(accounts)
 
     return accounts
