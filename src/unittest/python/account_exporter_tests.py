@@ -7,7 +7,7 @@ import boto
 import json
 import os
 import time
-import unittest2
+from mock import Mock
 
 import ultimate_source_of_accounts.account_exporter as ae
 
@@ -143,19 +143,13 @@ class AccountExporterTest(TestCase):
 
         self.assertEqual(expected_policy, json.loads(policy))
 
-    @unittest2.skip("not working yet")
     @mock_s3
     def test_setup_S3_webserver(self):
-        upload_data = {"foo": "bar"}
-        conn = boto.s3.connect_to_region(BUCKET_REGION)
+        mock_bucket = Mock()
+        self.s3_uploader.conn.get_bucket = Mock(return_value=mock_bucket)
+        self.s3_uploader.get_routing_rules = Mock(return_value='mock_routing_rules')
 
-        self.s3_uploader.create_S3_bucket()
-        self.s3_uploader.set_S3_permissions()
-        self.s3_uploader.upload_to_S3(upload_data)
         self.s3_uploader.setup_S3_webserver()
 
-        # wait until the settings applied
-        time.sleep(5)
-        bucket = conn.get_bucket(self.bucket_name)
-        # now get the website configuration, just to check it
-        print(bucket.get_website_configuration())
+        routing_rules = self.s3_uploader.get_routing_rules()
+        mock_bucket.configure_website.assert_called_once_with(suffix='accounts.json', routing_rules=routing_rules)

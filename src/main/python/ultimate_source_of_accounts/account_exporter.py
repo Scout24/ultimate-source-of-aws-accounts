@@ -64,20 +64,22 @@ class S3Uploader(object):
         bucket = self.conn.get_bucket(self.bucket_name)
         bucket.set_policy(json.dumps(policy))
 
+    def get_routing_rules(self):
+        routing_rules = boto.s3.website.RoutingRules()
+        for suffix in ['json', 'yaml']:
+            condition = boto.s3.website.Condition(key_prefix=suffix)
+            redirect = boto.s3.website.Redirect(replace_key_prefix='accounts.{0}'.format(suffix))
+            routing_rules.add_rule(boto.s3.website.RoutingRule(condition, redirect))
+        return routing_rules
+
     def setup_S3_webserver(self):
         bucket = self.conn.get_bucket(self.bucket_name)
 
         index_key = bucket.new_key('accounts.json')
         index_key.content_type = 'application/json'
 
-        routing_rules = boto.s3.website.RoutingRules()
-        for suffix in ['json', 'yaml']:
-            condition = boto.s3.website.Condition(key_prefix=suffix)
-            redirect = boto.s3.website.Redirect(replace_key_prefix='accounts.{0}'.format(suffix))
-            routing_rules.add_rule(boto.s3.website.RoutingRule(condition, redirect))
-
         # now set the website configuration for our bucket
-        bucket.configure_website(suffix='accounts.json', routing_rules=routing_rules)
+        bucket.configure_website(suffix='accounts.json', routing_rules=self.get_routing_rules())
 
     def upload_to_S3(self, upload_data):
         bucket = self.conn.get_bucket(self.bucket_name)

@@ -9,7 +9,6 @@ import tempfile
 import moto
 from mock import patch, Mock
 from unittest2 import TestCase
-import unittest2
 
 import ultimate_source_of_accounts.cli as cli
 
@@ -59,18 +58,17 @@ class UploadTest(TestCase):
         mock_exporter_instance.set_S3_permissions.assert_called_once_with()
         mock_exporter_instance.setup_S3_webserver.assert_called_once_with()
 
-    @unittest2.skip("under development")
     @patch("ultimate_source_of_accounts.cli.get_converted_aws_accounts")
+    @patch("ultimate_source_of_accounts.cli.S3Uploader.setup_S3_webserver")
     @moto.mock_s3
-    def test_upload_uses_S3Uploader_correctly(self, mock_converter):
+    def test_upload_uses_S3Uploader_correctly(self, mock_setup_S3_webserver, mock_converter):
         """Check if the 'necessary methods' used above actually exist on S3Uploader"""
         mock_converter.return_value = {"foo": "bar"}
-
         cli._main(self.arguments)
+        mock_setup_S3_webserver.assert_called_once_with()
 
 
 class CheckTest(TestCase):
     """Test the check_billing() function that is used for --check_billing"""
     def test_check_billing_not_yet_implemented(self):
         self.assertRaises(SystemExit, cli.check_billing, "foo", "bar")
-
