@@ -70,26 +70,11 @@ class S3Uploader(object):
         index_key = bucket.new_key('accounts.json')
         index_key.content_type = 'application/json'
 
-        routing_rules = '''
-<RoutingRules>
-    <RoutingRule>
-        <Condition>
-            <KeyPrefixEquals>yaml</KeyPrefixEquals>
-        </Condition>
-        <Redirect>
-        <ReplaceKeyPrefixWith>accounts.yaml</ReplaceKeyPrefixWith>
-        </Redirect>
-    </RoutingRule>
-    <RoutingRule>
-        <Condition>
-            <KeyPrefixEquals>json</KeyPrefixEquals>
-        </Condition>
-        <Redirect>
-        <ReplaceKeyPrefixWith>accounts.json</ReplaceKeyPrefixWith>
-        </Redirect>
-    </RoutingRule>
-</RoutingRules>
-        '''
+        routing_rules = boto.s3.website.RoutingRules()
+        for suffix in ['json', 'yaml']:
+            condition = boto.s3.website.Condition(key_prefix=suffix)
+            redirect = boto.s3.website.Redirect(replace_key_prefix='accounts.{0}'.format(suffix))
+            routing_rules.add_rule(boto.s3.website.RoutingRule(condition, redirect))
 
         # now set the website configuration for our bucket
         bucket.configure_website(suffix='accounts.json', routing_rules=routing_rules)
