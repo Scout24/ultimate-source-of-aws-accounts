@@ -3,6 +3,7 @@
 from __future__ import print_function, absolute_import, division
 import boto
 import json
+import logging
 
 BUCKET_REGION = "eu-west-1"
 
@@ -18,8 +19,9 @@ class S3Uploader(object):
         """ Create a new S3 bucket if bucket not exists else nothing """
         try:
             self.conn.create_bucket(self.bucket_name, location=BUCKET_REGION)
-        except boto.exception.S3CreateError:
-            pass
+            logging.debug("Created new AWS S3 bucket with name '%s'", self.bucket_name)
+        except boto.exception.S3CreateError as e:
+            logging.debug("Could not create S3 bucket '%s': %s", self.bucket_name, e)
 
     def set_S3_permissions(self):
         policy = {
@@ -63,6 +65,7 @@ class S3Uploader(object):
 
         bucket = self.conn.get_bucket(self.bucket_name)
         bucket.set_policy(json.dumps(policy))
+        logging.debug("AWS S3 bucket '%s' now has policy: '%s'", self.bucket_name, policy)
 
     def get_routing_rules(self):
         routing_rules = boto.s3.website.RoutingRules()
@@ -80,6 +83,7 @@ class S3Uploader(object):
 
         # now set the website configuration for our bucket
         bucket.configure_website(suffix='accounts.json', routing_rules=self.get_routing_rules())
+        logging.debug("Website configuration was setup for AWS S3 bucket '%s'", self.bucket_name)
 
     def upload_to_S3(self, upload_data):
         bucket = self.conn.get_bucket(self.bucket_name)
@@ -88,3 +92,5 @@ class S3Uploader(object):
         for key_name, content in upload_data.items():
             key.key = key_name
             key.set_contents_from_string(content)
+            logging.debug("Uploaded to AWS S3 bucket '%s': "
+                          "key '%s' and content '%s'", self.bucket_name, key_name, content)

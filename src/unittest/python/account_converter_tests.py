@@ -2,6 +2,7 @@
 
 from __future__ import print_function, absolute_import, division
 from unittest2 import TestCase
+from mock import patch
 import yaml
 import json
 
@@ -27,3 +28,19 @@ class AccountConverterTest(TestCase):
         decoded_result = json.loads(json_result)
 
         self.assertEqual(decoded_result, account_data)
+
+    @patch("ultimate_source_of_accounts.account_converter.json.dumps")
+    def test_raise_exception_when_json_convert_failed(self, json_dump_mock):
+        account_data = {"account_name1": {"id": 42, "email": "test.test@test.test"}}
+
+        json_dump_mock.side_effect = Exception("Failed to convert")
+
+        self.assertRaises(Exception, ac.get_converted_aws_accounts, account_data)
+
+    @patch("ultimate_source_of_accounts.account_converter.yaml.dump")
+    def test_raise_exception_when_yaml_convert_failed(self, yaml_dump_mock):
+        account_data = {"account_name1": {"id": 42, "email": "test.test@test.test"}}
+
+        yaml_dump_mock.side_effect = Exception("Failed to convert")
+
+        self.assertRaises(Exception, ac.get_converted_aws_accounts, account_data)

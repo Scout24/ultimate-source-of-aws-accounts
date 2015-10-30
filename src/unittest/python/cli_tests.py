@@ -5,6 +5,7 @@ from __future__ import print_function, absolute_import, division
 import os
 import shutil
 import tempfile
+import logging
 
 import moto
 from mock import patch, Mock
@@ -66,6 +67,16 @@ class UploadTest(TestCase):
         mock_converter.return_value = {"foo": "bar"}
         cli._main(self.arguments)
         mock_setup_S3_webserver.assert_called_once_with()
+
+    @patch("ultimate_source_of_accounts.cli.read_directory")
+    def test_main_logs_invalid_data(self, read_directory_mock):
+        message = "This must be logged"
+        read_directory_mock.side_effect = Exception(message)
+
+        with self.assertLogs(level=logging.WARN) as cm:
+            cli._main(self.arguments)
+        logged_output = "\n".join(cm.output)
+        self.assertRegex(logged_output, ".*" + self.tempdir + ".*" + message + ".*")
 
 
 class CheckTest(TestCase):

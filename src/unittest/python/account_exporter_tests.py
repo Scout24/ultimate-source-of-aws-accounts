@@ -7,6 +7,7 @@ import boto
 import json
 import os
 import time
+import logging
 from mock import Mock
 
 import ultimate_source_of_accounts.account_exporter as ae
@@ -27,7 +28,6 @@ class AccountExporterTest(TestCase):
         self.bucket_name = "testbucket"
         self.allowed_ips = ["123.131.124.5"]
         self.allowed_aws_account_ids = ["123456789"]
-
         self.s3_uploader = ae.S3Uploader(self.bucket_name,
                                          allowed_ips=self.allowed_ips,
                                          allowed_aws_account_ids=self.allowed_aws_account_ids)
@@ -47,7 +47,10 @@ class AccountExporterTest(TestCase):
         conn = boto.s3.connect_to_region(BUCKET_REGION)
         conn.create_bucket(self.bucket_name)
 
-        self.s3_uploader.create_S3_bucket()
+        with self.assertLogs(level=logging.DEBUG) as cm:
+            self.s3_uploader.create_S3_bucket()
+        logged_output = "\n".join(cm.output)
+        self.assertIn("Could not create S3 bucket '{0}': ".format(self.bucket_name), logged_output)
 
     @mock_s3
     def test_create_S3_bucket_must_not_delete_data(self):

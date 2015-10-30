@@ -3,7 +3,7 @@
 from __future__ import print_function, absolute_import, division
 
 import yamlreader
-
+import logging
 
 """ This module read yaml files with AWS account information and can execute a consistency check """
 
@@ -15,6 +15,8 @@ def read_directory(yaml_path):
     for account in accounts.values():
         account['id'] = str(account['id'])
     _check_account_data(accounts)
+
+    logging.debug("Read yaml files from directory '%s'", yaml_path)
 
     return accounts
 

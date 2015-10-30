@@ -19,6 +19,7 @@ Options:
 from __future__ import print_function, absolute_import, division
 
 import sys
+import logging
 from docopt import docopt
 
 from ultimate_source_of_accounts.account_importer import read_directory
@@ -34,7 +35,11 @@ def check_billing(billing_bucket_name, destination_bucket_name):
 def upload(data_directory, destination_bucket_name, allowed_ips=None):
     allowed_ips = allowed_ips or []
 
-    account_data = read_directory(data_directory)
+    try:
+        account_data = read_directory(data_directory)
+    except Exception as e:
+        raise Exception("Failed to read data directory '{0}': {1} ".format(data_directory, e))
+
     data_to_upload = get_converted_aws_accounts(account_data)
 
     our_account_ids = [account['id'] for account in account_data.values()]
@@ -54,12 +59,16 @@ def _main(arguments):
         destination_bucket_name = arguments['<destination-bucket-name>']
         check_billing(billing_bucket_name, destination_bucket_name)
     else:
-        allowed_ips = arguments['--allowed-ip']
-        data_directory = arguments['--import']
-        destination_bucket_name = arguments['<destination-bucket-name>']
-        upload(data_directory, destination_bucket_name, allowed_ips=allowed_ips)
+        try:
+            allowed_ips = arguments['--allowed-ip']
+            data_directory = arguments['--import']
+            destination_bucket_name = arguments['<destination-bucket-name>']
+            upload(data_directory, destination_bucket_name, allowed_ips=allowed_ips)
+        except Exception:
+            logging.exception("Failed to upload data: ")
 
 
 def main():
+    logging.basicConfig(format="%(asctime)-15s %(clientip)s %(user)-8s %(message)s")
     arguments = docopt(__doc__)
     _main(arguments)
