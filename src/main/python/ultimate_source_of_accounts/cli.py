@@ -5,13 +5,14 @@
 Tool to upload/check a list of your AWS accounts to an S3 bucket
 
 Usage:
-    ultimate-source-of-accounts --import=<data-directory> [--allowed-ip=<IP>...] <destination-bucket-name>
-    ultimate-source-of-accounts --check-billing=<billing-bucket-name> <destination-bucket-name>
+    ultimate-source-of-accounts --import=<data-directory> [--allowed-ip=<IP>...] <destination-bucket-name> [--verbose]
+    ultimate-source-of-accounts --check-billing=<billing-bucket-name> <destination-bucket-name> [--verbose]
 
 Options:
   -h --help                             Show this.
   --allowed-ip=IP                       IP with access to the destination bucket, can be used multiple times
   --check-billing=<billing-bucket-name> Check Billing account
+  -v --verbose                          Log more stuff
   --import=<data-directory>             Import account list from directory
   <destination-bucket-name>             Target bucket
 """
@@ -69,6 +70,7 @@ def _main(arguments):
 
 
 def main():
-    logging.basicConfig(format="%(asctime)-15s %(clientip)s %(user)-8s %(message)s")
     arguments = docopt(__doc__)
+    log_level = logging.DEBUG if arguments["--verbose"] else logging.INFO
+    logging.basicConfig(format="%(asctime)-15s %(message)s", level=log_level)
     _main(arguments)
