@@ -35,16 +35,22 @@ class AccountImportTest(TestCase):
         account_data = {"account_name": {}}
         self.assertRaises(Exception, ai._check_account_data, account_data)
 
+
+
     def test_accept_valid_data(self):
-        account_data = {"account_name1": {"id": "42", "email": "test.test@test.test"}}
+        account_data = {
+            "account_name1": {
+                "id": "42",
+                "email": "test.test@test.test",
+                "owner": "me"}}
         ai._check_account_data(account_data)
 
     def test_account_id_is_converted_to_string(self):
         directory = tempfile.mkdtemp()
         filename = "account.yaml"
         content = {
-            "account_name": {"id": 42, "email": "test.test@test.test"},
-            "another": {"id": "43", "email": "test.test@test.test"}}
+            "account_name": {"id": 42, "email": "test.test@test.test", "owner": "me"},
+            "another": {"id": "43", "email": "test.test@test.test", "owner": "minime"}}
 
         try:
             with open(os.path.join(directory, filename), "w") as test_file:
@@ -64,7 +70,7 @@ class AccountImportTest(TestCase):
     def test_loaded_data_is_checked(self, mock_check_account):
         directory = tempfile.mkdtemp()
         filename = "account.yaml"
-        content = "account_one:\n  id: 1\n  email: one@s24.de"
+        content = "account_one:\n  id: 1\n  email: one@s24.de\n  owner: me"
 
         try:
             with open(os.path.join(directory, filename), "w") as test_file:
@@ -72,14 +78,16 @@ class AccountImportTest(TestCase):
 
             ai.read_directory(directory)
 
-            mock_check_account.assert_called_once_with({'account_one': {'id': '1', 'email': 'one@s24.de'}})
+            mock_check_account.assert_called_once_with(
+                {'account_one': {
+                    'id': '1', 'email': 'one@s24.de', 'owner': 'me'}})
         finally:
             shutil.rmtree(directory)
 
     def test_loaded_data_is_returned_data(self):
         directory = tempfile.mkdtemp()
         filename = "account.yaml"
-        content = {"account_name": {"id": "42", "email": "test.test@test.test"}}
+        content = {"account_name": {"id": "42", "email": "test.test@test.test", "owner": "me"}}
 
         try:
             with open(os.path.join(directory, filename), "w") as test_file:
@@ -96,8 +104,8 @@ class AccountImportTest(TestCase):
         filename = "account.yaml"
         # Duplicates must be detected even if one item is given as a string,
         # the other as integer.
-        content = {"account_name1": {"id": 42, "email": "test.test@test.test"},
-                   "account_name2": {"id": "42", "email": "test2.test2@test.test"}}
+        content = {"account_name1": {"id": 42, "email": "test.test@test.test", "owner": "me"},
+                   "account_name2": {"id": "42", "email": "test2.test2@test.test", "owner": "notme"}}
 
         try:
             with open(os.path.join(directory, filename), "w") as test_file:
@@ -109,15 +117,15 @@ class AccountImportTest(TestCase):
 
 
     def test_raise_exception_when_two_accounts_have_same_account_id(self):
-        account_data = {"account_name1": {"id": "42", "email": "test.test@test.test"},
-                        "account_name2": {"id": "43", "email": "test2.test2@test.test"},
-                        "account_name3": {"id": "42", "email": "test3.test2@test.test"},
-                        "account_name4": {"id": "43", "email": "test2.test2@test.test"}}
+        account_data = {"account_name1": {"id": "42", "email": "test.test@test.test", "owner": "me"},
+                        "account_name2": {"id": "43", "email": "test2.test2@test.test", "owner": "me"},
+                        "account_name3": {"id": "42", "email": "test3.test2@test.test", "owner": "me"},
+                        "account_name4": {"id": "43", "email": "test2.test2@test.test", "owner": "me"}}
 
         self.assertRaises(Exception, ai._check_account_data, account_data)
 
     def test_accounts_with_different_ids(self):
-        account_data = {"account_name1": {"id": "42", "email": "test.test@test.test"},
-                        "account_name2": {"id": "43", "email": "test2.test2@test.test"}}
+        account_data = {"account_name1": {"id": "42", "email": "test.test@test.test", "owner": "me"},
+                        "account_name2": {"id": "43", "email": "test2.test2@test.test", "owner": "me"}}
         ai._check_account_data(account_data)
 
