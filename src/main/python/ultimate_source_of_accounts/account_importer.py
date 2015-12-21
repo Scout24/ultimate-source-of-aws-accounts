@@ -46,3 +46,19 @@ def _check_account_data(accounts):
         if owner == "":
             raise Exception("'owner' field of account {0} is empty.".format(account_name))
 
+        if "automated" in account_data:
+            automated = account_data['automated']
+            if not isinstance(automated, dict):
+                raise Exception("'automated' field of account {0} is not a dict.".format(account_name))
+            for key, value in automated.items():
+                if not isinstance(key, six.string_types):
+                    raise Exception(
+                        "{account_name}.automated may only contain strings, "
+                        "but the key '{key}' is of type {key_type}".format(
+                            account_name=account_name, key=key, key_type=type(key)))
+                if value not in (True, False):
+                    raise Exception(
+                        "{account_name}.automated.{key} must be boolean, "
+                        "but '{value}' is a {value_type}.".format(
+                            account_name=account_name, key=key, value=value,
+                            value_type=type(value)))

@@ -139,3 +139,42 @@ class AccountImportTest(TestCase):
                         "account_name2": {"id": "43", "email": "test2.test2@test.test", "owner": "me"}}
         ai._check_account_data(account_data)
 
+
+class AutomatedFieldTests(TestCase):
+    """Various tests for the 'automated' field in the account data"""
+    def setUp(self):
+        self.account_data = {
+            "account1": {
+                "id": "42",
+                "email": "test.test@test.test",
+                "owner": "me",
+                "automated": {}
+        }}
+
+    def test_valid_data_is_accepted(self):
+        self.account_data['account1']['automated'] = {
+            'foo': True,
+            'bar': False}
+        ai._check_account_data(self.account_data)
+
+    def test_empty_automated_field_is_allowed(self):
+        ai._check_account_data(self.account_data)
+
+    def test_omitting_the_automated_field_is_allowed(self):
+        del self.account_data['account1']['automated']
+        ai._check_account_data(self.account_data)
+
+    def test_raise_exception_when_automated_is_no_dict(self):
+        for invalid_automated in (True, 42, "hello", []):
+            self.account_data['account1']['automated'] = invalid_automated
+            self.assertRaises(Exception, ai._check_account_data, self.account_data)
+
+    def test_raise_exception_when_automated_keys_are_no_strings(self):
+        for invalid_key in (True, 42, "", tuple()):
+            self.account_data['account1']['automated'][invalid_key] = False
+            self.assertRaises(Exception, ai._check_account_data, self.account_data)
+
+    def test_raise_exception_when_automated_values_are_no_bools(self):
+        for invalid_value in ("hello", 42, "", []):
+            self.account_data['account1']['automated']['foo'] = invalid_value
+            self.assertRaises(Exception, ai._check_account_data, self.account_data)
