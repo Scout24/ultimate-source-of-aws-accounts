@@ -67,10 +67,16 @@ def _main(arguments):
             upload(data_directory, destination_bucket_name, allowed_ips=allowed_ips)
         except Exception:
             logging.exception("Failed to upload data: ")
+            raise
 
 
 def main():
-    arguments = docopt(__doc__)
+    try:
+        arguments = docopt(__doc__)
+    except SystemExit as exc:
+        print(exc)
+        sys.exit(1)
+
     log_level = logging.DEBUG if arguments["--verbose"] else logging.INFO
     logging.basicConfig(format="%(asctime)-15s %(message)s", level=log_level)
     _main(arguments)

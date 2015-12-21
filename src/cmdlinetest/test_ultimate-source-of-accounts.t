@@ -17,5 +17,13 @@
     -v --verbose                          Log more stuff
     --import=<data-directory>             Import account list from directory
     <destination-bucket-name>             Target bucket
+  
+  [1]
 
+ Return code must not be 0 when some error occurs.
+  $ ultimate-source-of-accounts --import=/directory/that/does/not/exist test_bucket 2>/dev/null
+  [1]
 
+ Return code must not be 0 when invalid options are used
+  $ ultimate-source-of-accounts --invalid --options --must --be-errors >/dev/null 2>/dev/null
+  [1]

@@ -75,7 +75,7 @@ class UploadTest(TestCase):
         read_directory_mock.side_effect = Exception(message)
 
         with self.assertLogs(level=logging.WARN) as cm:
-            cli._main(self.arguments)
+            self.assertRaises(Exception, cli._main, self.arguments)
         logged_output = "\n".join(cm.output)
         self.assertRegex(logged_output, ".*" + self.tempdir + ".*" + message + ".*")
 
