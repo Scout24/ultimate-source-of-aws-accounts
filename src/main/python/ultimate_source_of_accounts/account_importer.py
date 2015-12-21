@@ -42,6 +42,7 @@ def _check_account_data(accounts):
             raise Exception("Account {0} has no 'owner' field".format(account_name))
         owner = account_data['owner']
         if not isinstance(owner, six.string_types):
-            raise Exception("'owner' field of account {0} is not a string".format(account_data))
+            raise Exception("'owner' field of account {0} is not a string.".format(account_name))
         if owner == "":
-            raise Exception("'owner' field of account {0} is empty".format(account_data))
+            raise Exception("'owner' field of account {0} is empty.".format(account_name))
+
