@@ -5,6 +5,7 @@ from __future__ import print_function, absolute_import, division
 
 import yamlreader
 import logging
+import six
 
 
 def read_directory(yaml_path):
@@ -37,3 +38,10 @@ def _check_account_data(accounts):
             raise Exception("Account data {0} without @ in email.".format(account_name))
         if not account_id:
             raise Exception("Account data {0} has no account id.".format(account_name))
+        if 'owner' not in account_data:
+            raise Exception("Account {0} has no 'owner' field".format(account_name))
+        owner = account_data['owner']
+        if not isinstance(owner, six.string_types):
+            raise Exception("'owner' field of account {0} is not a string".format(account_data))
+        if owner == "":
+            raise Exception("'owner' field of account {0} is empty".format(account_data))

@@ -23,7 +23,7 @@ class UploadTest(TestCase):
             '--check-billing': None}
 
         with open(os.path.join(self.tempdir, "foo.yaml"), "w") as config:
-            config.write("my_account:\n  id: 42\n  email: me@host.invalid")
+            config.write("my_account:\n  id: 42\n  email: me@host.invalid\n  owner: me")
 
     def tearDown(self):
         shutil.rmtree(self.tempdir)
@@ -36,7 +36,8 @@ class UploadTest(TestCase):
 
         cli._main(self.arguments)
 
-        mock_converter.assert_called_once_with({'my_account': {'id': '42', 'email': 'me@host.invalid'}})
+        mock_converter.assert_called_once_with(
+            {'my_account': {'id': '42', 'email': 'me@host.invalid', 'owner': 'me'}})
 
     @patch("ultimate_source_of_accounts.cli.get_converted_aws_accounts")
     @patch("ultimate_source_of_accounts.cli.S3Uploader")

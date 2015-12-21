@@ -35,7 +35,17 @@ class AccountImportTest(TestCase):
         account_data = {"account_name": {}}
         self.assertRaises(Exception, ai._check_account_data, account_data)
 
+    def test_raise_exception_when_account_data_without_owner(self):
+        account_data = {
+            "account_name1": {"id": "42", "email": "test.test@test.test"}}
+        self.assertRaises(Exception, ai._check_account_data, account_data)
 
+    def test_raise_exception_when_account_data_with_invalid_owner(self):
+        account_data = {
+            "account_name1": {"id": "42", "email": "test.test@test.test"}}
+        for invalid_owner in (True, 42, ""):
+            account_data['account_name1']['owner'] = invalid_owner
+            self.assertRaises(Exception, ai._check_account_data, account_data)
 
     def test_accept_valid_data(self):
         account_data = {
