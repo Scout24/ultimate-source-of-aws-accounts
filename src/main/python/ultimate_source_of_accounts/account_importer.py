@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
+"""Read yaml files with AWS account information and run a consistency check"""
 
 from __future__ import print_function, absolute_import, division
 
 import yamlreader
 import logging
 
-""" This module read yaml files with AWS account information and can execute a consistency check """
-
 
 def read_directory(yaml_path):
-    """ Read yaml files and return merged yaml files """
+    """Read yaml files and return merged yaml data"""
     accounts = yamlreader.yaml_load(yaml_path)
 
     for account in accounts.values():
@@ -22,7 +21,7 @@ def read_directory(yaml_path):
 
 
 def _check_account_data(accounts):
-    """ Raise exception if account data looks wrong otherwise return true"""
+    """Raise exception if account data looks wrong, otherwise return True"""
     if not accounts:
         raise Exception("Account data is empty.")
 
