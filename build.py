@@ -27,8 +27,6 @@ def set_properties(project):
     project.depends_on("boto")
     project.depends_on("docopt")
     project.depends_on("six")
-    # Temporary workaround for https://github.com/gabrielfalcao/HTTPretty/issues/278
-    #project.depends_on("httpretty==0.8.10")
 
     project.set_property('distutils_console_scripts', ['ultimate-source-of-accounts=ultimate_source_of_accounts.cli:main'])
     project.set_property('flake8_break_build', True)
