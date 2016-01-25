@@ -149,7 +149,7 @@ class AccountExporterTest(TestCase):
     @mock_s3
     def test_setup_S3_webserver(self):
         mock_bucket = Mock()
-        self.s3_uploader.conn.get_bucket = Mock(return_value=mock_bucket)
+        self.s3_uploader.s3_conn.get_bucket = Mock(return_value=mock_bucket)
         self.s3_uploader.get_routing_rules = Mock(return_value='mock_routing_rules')
 
         self.s3_uploader.setup_S3_webserver()

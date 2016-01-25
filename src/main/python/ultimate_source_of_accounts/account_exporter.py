@@ -13,12 +13,13 @@ class S3Uploader(object):
         self.bucket_name = bucket_name
         self.allowed_ips = allowed_ips or []
         self.allowed_aws_account_ids = allowed_aws_account_ids or []
-        self.conn = boto.s3.connect_to_region(BUCKET_REGION)
+        self.s3_conn = boto.s3.connect_to_region(BUCKET_REGION)
+        self.sns_conn = boto.sns.connect_to_region(BUCKET_REGION)
 
     def create_S3_bucket(self):
         """ Create a new S3 bucket if bucket not exists else nothing """
         try:
-            self.conn.create_bucket(self.bucket_name, location=BUCKET_REGION)
+            self.s3_conn.create_bucket(self.bucket_name, location=BUCKET_REGION)
             logging.debug("Created new AWS S3 bucket with name '%s'", self.bucket_name)
         except boto.exception.S3CreateError as e:
             logging.debug("Could not create S3 bucket '%s': %s", self.bucket_name, e)
@@ -63,9 +64,20 @@ class S3Uploader(object):
             ]
         }
 
-        bucket = self.conn.get_bucket(self.bucket_name)
+        bucket = self.s3_conn.get_bucket(self.bucket_name)
         bucket.set_policy(json.dumps(policy))
         logging.debug("AWS S3 bucket '%s' now has policy: '%s'", self.bucket_name, policy)
+
+    def create_sns_topic(self):
+        try:
+            self.sns_conn.create_topic(self.bucket_name)
+            logging.debug("Created new SNS topic with name '%s'", self.bucket_name)
+        except boto.exception.BotoClientError as e:
+            logging.debug("Could not create SNS topic '%s': %s", self.bucket_name, e)
+
+    def create_sns_topic_policy(self):
+        pass
+
 
     def get_routing_rules(self):
         routing_rules = boto.s3.website.RoutingRules()
@@ -76,7 +88,7 @@ class S3Uploader(object):
         return routing_rules
 
     def setup_S3_webserver(self):
-        bucket = self.conn.get_bucket(self.bucket_name)
+        bucket = self.s3_conn.get_bucket(self.bucket_name)
 
         index_key = bucket.new_key('accounts.json')
         index_key.content_type = 'application/json'
@@ -86,7 +98,7 @@ class S3Uploader(object):
         logging.debug("Website configuration was setup for AWS S3 bucket '%s'", self.bucket_name)
 
     def upload_to_S3(self, upload_data):
-        bucket = self.conn.get_bucket(self.bucket_name)
+        bucket = self.s3_conn.get_bucket(self.bucket_name)
         key = boto.s3.key.Key(bucket)
 
         for key_name, content in upload_data.items():
