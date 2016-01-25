@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function, absolute_import, division
-import boto
+import boto.s3
+import boto.exception
+import boto.sns
 import json
 import logging
 
@@ -69,15 +71,17 @@ class S3Uploader(object):
         logging.debug("AWS S3 bucket '%s' now has policy: '%s'", self.bucket_name, policy)
 
     def create_sns_topic(self):
-        try:
+        response = self.sns_conn.get_all_topics()
+        for topic in response['ListTopicsResponse']['ListTopicsResult']['Topics']:
+            if topic['TopicArn'].endswith(':{0}'.format(self.bucket_name)):
+                self.topic_arn = topic['TopicArn']
+
+        if not self.topic_arn:
             self.sns_conn.create_topic(self.bucket_name)
-            logging.debug("Created new SNS topic with name '%s'", self.bucket_name)
-        except boto.exception.BotoClientError as e:
-            logging.debug("Could not create SNS topic '%s': %s", self.bucket_name, e)
+            logging.info("Created new SNS topic with name '%s'", self.bucket_name)
 
-    def create_sns_topic_policy(self):
+    def set_sns_topic_policy(self):
         pass
-
 
     def get_routing_rules(self):
         routing_rules = boto.s3.website.RoutingRules()
