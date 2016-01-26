@@ -71,17 +71,47 @@ class S3Uploader(object):
         logging.debug("AWS S3 bucket '%s' now has policy: '%s'", self.bucket_name, policy)
 
     def create_sns_topic(self):
-        response = self.sns_conn.get_all_topics()
-        for topic in response['ListTopicsResponse']['ListTopicsResult']['Topics']:
-            if topic['TopicArn'].endswith(':{0}'.format(self.bucket_name)):
-                self.topic_arn = topic['TopicArn']
+        response = self.sns_conn.create_topic(self.bucket_name)
+        topic_arn = response['CreateTopicResponse']['CreateTopicResult']['TopicArn']
+        logging.info("Using SNS topic with arn '%s'", topic_arn)
 
-        if not self.topic_arn:
-            self.sns_conn.create_topic(self.bucket_name)
-            logging.info("Created new SNS topic with name '%s'", self.bucket_name)
+        return topic_arn
 
-    def set_sns_topic_policy(self):
-        pass
+    def set_sns_topic_policy(self, topic_arn):
+        allow_s3_events = {
+            "Effect": "Allow",
+            "Action": [
+                "sns:Publish"
+            ],
+            "Principal": {
+                "AWS": "*"
+            },
+            "Resource": topic_arn,
+            "Condition": {
+                "ArnLike": {
+                    "aws:SourceArn": "arn:aws:s3:*:*:{0}".format(self.bucket_name)
+                }
+            }
+        }
+        allow_subscribe_to_all_acconts = {
+            "Effect": "Allow",
+            "Action": [
+                "sns:Subscribe"
+            ],
+            "Principal": {
+                "AWS": self.allowed_aws_account_ids
+            },
+            "Resource": topic_arn
+        }
+        policy = {
+            "Version": "2012-10-17",
+            "Statement": [
+                allow_s3_events,
+                allow_subscribe_to_all_acconts
+            ]
+        }
+
+        self.sns_conn.set_topic_attributes(topic_arn, 'Policy', json.dumps(policy))
 
     def get_routing_rules(self):
         routing_rules = boto.s3.website.RoutingRules()

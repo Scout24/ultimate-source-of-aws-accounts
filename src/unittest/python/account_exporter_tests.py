@@ -2,11 +2,10 @@
 
 from __future__ import print_function, absolute_import, division
 from unittest2 import TestCase
-from moto import mock_s3
+from moto import mock_s3, mock_sns
 import boto
 import json
 import os
-import time
 import logging
 from mock import Mock
 
@@ -156,3 +155,55 @@ class AccountExporterTest(TestCase):
 
         routing_rules = self.s3_uploader.get_routing_rules()
         mock_bucket.configure_website.assert_called_once_with(suffix='accounts.json', routing_rules=routing_rules)
+
+    @mock_sns
+    def test_create_sns_topic_if_none_existing(self):
+        topic_arn = self.s3_uploader.create_sns_topic()
+        self.assertIsNotNone(topic_arn)
+
+    @mock_sns
+    def test_create_sns_topic_if_already_existing(self):
+        response = boto.sns.connect_to_region(BUCKET_REGION).create_topic(self.bucket_name)
+        topic_arn = response['CreateTopicResponse']['CreateTopicResult']['TopicArn']
+
+        self.assertEqual(topic_arn, self.s3_uploader.create_sns_topic())
+
+    @mock_sns
+    def test_set_topic_policy(self):
+        topic_arn = self.s3_uploader.create_sns_topic()
+        expected_policy = {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Effect": "Allow",
+                    "Action": [
+                        "sns:Publish"
+                    ],
+                    "Principal": {
+                        "AWS":"*"
+                    },
+                    "Resource": topic_arn,
+                    "Condition": {
+                        "ArnLike": {
+                            "aws:SourceArn": "arn:aws:s3:*:*:{0}".format(self.bucket_name)
+                        }
+                    }
+                },{
+                    "Effect": "Allow",
+                    "Action": [
+                        "sns:Subscribe"
+                    ],
+                    "Principal": {
+                        "AWS": self.allowed_aws_account_ids
+                    },
+                    "Resource": topic_arn
+                }
+            ]
+        }
+
+        self.s3_uploader.set_sns_topic_policy(topic_arn)
+        response = boto.sns.connect_to_region(BUCKET_REGION).get_topic_attributes(topic_arn)
+        created_policy = json.loads(
+                response['GetTopicAttributesResponse']['GetTopicAttributesResult']['Attributes']['Policy'])
+
+        self.assertEqual(created_policy, expected_policy)
