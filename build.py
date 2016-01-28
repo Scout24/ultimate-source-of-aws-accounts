@@ -1,4 +1,6 @@
-from pybuilder.core import use_plugin, init
+import yaml
+from pybuilder.core import use_plugin, init, task
+import os
 
 use_plugin("python.core")
 use_plugin("python.unittest")
@@ -32,13 +34,27 @@ def set_properties(project):
     project.set_property('flake8_break_build', True)
 
 
+@task
+def generate_snakepit_yaml(project):
+    snakepit_config = {
+        'pypi_package_name': name,
+        'pypi_package_version': project.verison,
+        'symlinks': '[\'{0}\']'.format(name),
+        'extra_pip_args': '--index={0}'.format(os.environ.get('PYPIPROXY_URL'))
+    }
+    snakepit_yaml = '{0}/snakepit.yaml'.format(project.get_property('dir_dist'))
+    with open(snakepit_yaml, 'w') as f:
+        f.write(yaml.dump(snakepit_config, default_flow_style=False))
+    if project.get_property('teamcity_output'):
+        print "##teamcity[setParameter name='snakepit_yaml' value='{0}']".format(snakepit_yaml)
+
+
 @init(environments='teamcity')
 def set_properties_for_teamcity_builds(project):
-    import os
     project.set_property('teamcity_output', True)
     project.version = '%s-%s' % (project.version,
                                  os.environ.get('BUILD_NUMBER', 0))
-    project.default_task = ['clean', 'install_build_dependencies', 'publish']
+    project.default_task = ['clean', 'install_build_dependencies', 'publish', 'generate_snakepit_yaml']
     project.set_property('install_dependencies_index_url',
                          os.environ.get('PYPIPROXY_URL'))
     project.rpm_release = os.environ.get('RPM_RELEASE', 0)
