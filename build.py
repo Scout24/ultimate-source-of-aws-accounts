@@ -24,8 +24,8 @@ def set_properties(project):
     project.build_depends_on("unittest2")
     project.build_depends_on("moto")
     project.build_depends_on("mock")
+    project.build_depends_on("pyyaml")
     project.depends_on("yamlreader")
-    project.depends_on("pyyaml")
     project.depends_on("boto")
     project.depends_on("docopt")
     project.depends_on("six")
@@ -38,11 +38,11 @@ def set_properties(project):
 def generate_snakepit_yaml(project):
     snakepit_config = {
         'pypi_package_name': name,
-        'pypi_package_version': project.verison,
-        'symlinks': '[\'{0}\']'.format(name),
+        'pypi_package_version': project.version,
+        'symlinks': [name],
         'extra_pip_args': '--index={0}'.format(os.environ.get('PYPIPROXY_URL'))
     }
-    snakepit_yaml = '{0}/snakepit.yaml'.format(project.get_property('dir_dist'))
+    snakepit_yaml = 'snakepit.yaml'
     with open(snakepit_yaml, 'w') as f:
         f.write(yaml.dump(snakepit_config, default_flow_style=False))
     if project.get_property('teamcity_output'):
