@@ -175,6 +175,7 @@ class AccountExporterTest(TestCase):
             "Version": "2012-10-17",
             "Statement": [
                 {
+                    "Sid": "allow_s3_events",
                     "Effect": "Allow",
                     "Action": [
                         "sns:Publish"
@@ -189,6 +190,7 @@ class AccountExporterTest(TestCase):
                         }
                     }
                 },{
+                    "Sid": "allow_subscribe_to_all_acconts",
                     "Effect": "Allow",
                     "Action": [
                         "sns:Subscribe"
