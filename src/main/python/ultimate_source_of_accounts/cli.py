@@ -48,10 +48,8 @@ def upload(data_directory, destination_bucket_name, allowed_ips=None):
                           allowed_ips=allowed_ips,
                           allowed_aws_account_ids=our_account_ids)
 
-    uploader.create_S3_bucket()
-    uploader.set_S3_permissions()
+    uploader.setup_infrastructure()
     uploader.upload_to_S3(data_to_upload)
-    uploader.setup_S3_webserver()
 
 
 def _main(arguments):

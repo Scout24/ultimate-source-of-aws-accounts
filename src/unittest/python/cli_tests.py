@@ -55,19 +55,19 @@ class UploadTest(TestCase):
                 allowed_ips=["123", "345"],
                 allowed_aws_account_ids=['42'])
 
-        mock_exporter_instance.create_S3_bucket.assert_called_once_with()
+        mock_exporter_instance.setup_infrastructure.assert_called_once_with()
         mock_exporter_instance.upload_to_S3.assert_called_once_with({'foo': 'bar'})
-        mock_exporter_instance.set_S3_permissions.assert_called_once_with()
-        mock_exporter_instance.setup_S3_webserver.assert_called_once_with()
 
     @patch("ultimate_source_of_accounts.cli.get_converted_aws_accounts")
-    @patch("ultimate_source_of_accounts.cli.S3Uploader.setup_S3_webserver")
+    @patch("ultimate_source_of_accounts.cli.S3Uploader.upload_to_S3")
+    @patch("ultimate_source_of_accounts.cli.S3Uploader.setup_infrastructure")
     @moto.mock_s3
-    def test_upload_uses_S3Uploader_correctly(self, mock_setup_S3_webserver, mock_converter):
+    def test_upload_uses_S3Uploader_correctly(self, _, mock_upload, mock_converter):
         """Check if the 'necessary methods' used above actually exist on S3Uploader"""
-        mock_converter.return_value = {"foo": "bar"}
+        upload_data = {"foo": "bar"}
+        mock_converter.return_value = upload_data
         cli._main(self.arguments)
-        mock_setup_S3_webserver.assert_called_once_with()
+        mock_upload.assert_called_once_with(upload_data)
 
     @patch("ultimate_source_of_accounts.cli.read_directory")
     def test_main_logs_invalid_data(self, read_directory_mock):

@@ -7,6 +7,8 @@ import boto.sns
 import json
 import logging
 
+import boto3
+
 BUCKET_REGION = "eu-west-1"
 
 
@@ -16,7 +18,16 @@ class S3Uploader(object):
         self.allowed_ips = allowed_ips or []
         self.allowed_aws_account_ids = allowed_aws_account_ids or []
         self.s3_conn = boto.s3.connect_to_region(BUCKET_REGION)
+        self.boto3_s3_client = boto3.client('s3')
         self.sns_conn = boto.sns.connect_to_region(BUCKET_REGION)
+
+    def setup_infrastructure(self):
+        topic_arn = self.create_sns_topic()
+        self.set_sns_topic_policy(topic_arn)
+        self.create_S3_bucket()
+        self.set_S3_permissions()
+        self.setup_S3_webserver()
+        self.enable_bucket_notifications(topic_arn)
 
     def create_S3_bucket(self):
         """ Create a new S3 bucket if bucket not exists else nothing """
@@ -79,6 +90,7 @@ class S3Uploader(object):
 
     def set_sns_topic_policy(self, topic_arn):
         allow_s3_events = {
+            "Sid": "allow_s3_events",
             "Effect": "Allow",
             "Action": [
                 "sns:Publish"
@@ -94,6 +106,7 @@ class S3Uploader(object):
             }
         }
         allow_subscribe_to_all_acconts = {
+            "Sid": "allow_subscribe_to_all_acconts",
             "Effect": "Allow",
             "Action": [
                 "sns:Subscribe"
@@ -111,7 +124,21 @@ class S3Uploader(object):
             ]
         }
 
-        self.sns_conn.set_topic_attributes(topic_arn, 'Policy', json.dumps(policy))
+        dumps = json.dumps(policy)
+        print(dumps)
+        self.sns_conn.set_topic_attributes(topic_arn, 'Policy', dumps)
+
+    def enable_bucket_notifications(self, topic_arn):
+        notification_configuration = {
+            'TopicConfigurations': [
+                {
+                    'TopicArn': topic_arn,
+                    'Events': ['s3:ObjectCreated:*']
+                }
+            ]
+        }
+        self.boto3_s3_client.put_bucket_notification_configuration(Bucket=self.bucket_name,
+                                                                   NotificationConfiguration=notification_configuration)
 
     def get_routing_rules(self):
         routing_rules = boto.s3.website.RoutingRules()
