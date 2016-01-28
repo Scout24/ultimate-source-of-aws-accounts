@@ -14,6 +14,7 @@ use_plugin('python.cram')
 name = "ultimate-source-of-accounts"
 description = "Upload information about your AWS accounts to an S3 bucket"
 default_task = ["clean", "analyze", "run_cram_tests"]
+version = '1.1'
 
 
 @init
