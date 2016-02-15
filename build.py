@@ -29,6 +29,9 @@ def set_properties(project):
     project.depends_on("boto3")
     project.depends_on("docopt")
     project.depends_on("six")
+    # unittest-xml-reporting version 2.0 dropped support for Python 2.6. Use
+    # an older version to make the build work on RHEL 6.
+    project.depends_on("unittest-xml-reporting<2.0.0")
 
     project.set_property('distutils_console_scripts', ['ultimate-source-of-accounts=ultimate_source_of_accounts.cli:main'])
     project.set_property('flake8_break_build', True)
