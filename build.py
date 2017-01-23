@@ -20,7 +20,8 @@ version = '1.1'
 @init
 def set_properties(project):
     project.set_property('install_dependencies_upgrade', True)
-    project.build_depends_on("unittest2")
+    # Ensure we have assertLogs
+    project.build_depends_on("unittest2>=0.7")
     project.build_depends_on("moto")
     project.build_depends_on("mock")
     project.depends_on("yamlreader")
