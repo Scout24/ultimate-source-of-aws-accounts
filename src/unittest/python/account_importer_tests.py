@@ -75,6 +75,25 @@ class AccountImportTest(TestCase):
         finally:
             shutil.rmtree(directory)
 
+    def test_duplicate_account_name_is_detected_many_files(self):
+        # Duplicate account names in a single file cannot be detected, since
+        # yaml.safe_load already removes duplicate dictionary keys.
+        directory = tempfile.mkdtemp()
+        try:
+            content1 = {"account_bar": {
+                "id": 42, "email": "test.test@test.test", "owner": "me"}}
+            content2 = {"account_bar": {
+                "id": 123, "email": "test.test@test.test", "owner": "me"}}
+            file_one_name = os.path.join(directory, "file_one.yaml")
+            file_two_name = os.path.join(directory, "file_two.yaml")
+            with open(file_one_name, "w") as file_one:
+                yaml.dump(content1, file_one)
+            with open(file_two_name, "w") as file_two:
+                yaml.dump(content2, file_two)
+
+            self.assertRaises(Exception, ai.read_directory, directory)
+        finally:
+            shutil.rmtree(directory)
 
     @patch("ultimate_source_of_accounts.account_importer._check_account_data")
     def test_loaded_data_is_checked(self, mock_check_account):

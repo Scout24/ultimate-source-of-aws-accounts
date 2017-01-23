@@ -6,6 +6,7 @@ from __future__ import print_function, absolute_import, division
 import yamlreader
 import logging
 import six
+from mock import patch
 
 
 def read_directory(yaml_path):
@@ -15,10 +16,27 @@ def read_directory(yaml_path):
     for account in accounts.values():
         account['id'] = str(account['id'])
     _check_account_data(accounts)
+    _check_duplicate_account_names(yaml_path)
 
     logging.debug("Read yaml files from directory '%s'", yaml_path)
 
     return accounts
+
+
+# data_merge is patched to get access to the data from each individual
+# file, before data is merged. This allows detecting if the same account
+# name (not id!) is defined twice, e.g. due to a copy & paste mistake.
+@patch("yamlreader.yamlreader.data_merge")
+def _check_duplicate_account_names(yaml_path, mock_data_merge):
+    yamlreader.yaml_load(yaml_path)
+    account_names_found = set()
+    for args, kwargs in mock_data_merge.call_args_list:
+        _, new_data = args
+        names = new_data.keys()
+        for name in names:
+            if name in account_names_found:
+                raise Exception("Duplicate definition of account %r" % name)
+            account_names_found.add(name)
 
 
 def _check_account_data(accounts):

@@ -23,7 +23,7 @@ def set_properties(project):
     # Ensure we have assertLogs
     project.build_depends_on("unittest2>=0.7")
     project.build_depends_on("moto")
-    project.build_depends_on("mock")
+    project.depends_on("mock")
     project.depends_on("yamlreader")
     project.depends_on("pyyaml")
     project.depends_on("boto")
