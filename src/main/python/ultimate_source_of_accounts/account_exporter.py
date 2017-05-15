@@ -157,11 +157,7 @@ class S3Uploader(object):
         logging.debug("Website configuration was setup for AWS S3 bucket '%s'", self.bucket_name)
 
     def upload_to_S3(self, upload_data):
-        bucket = self.s3_conn.get_bucket(self.bucket_name)
-        key = boto.s3.key.Key(bucket)
-
         for key_name, content in upload_data.items():
-            key.key = key_name
-            key.set_contents_from_string(content)
+            self.boto3_s3_client.put_object(Bucket=self.bucket_name, Key=key_name, Body=content
             logging.debug("Uploaded to AWS S3 bucket '%s': "
                           "key '%s' and content '%s'", self.bucket_name, key_name, content)
