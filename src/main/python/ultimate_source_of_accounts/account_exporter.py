@@ -125,7 +125,8 @@ class S3Uploader(object):
             ]
         }
 
-        self.sns_conn.set_topic_attributes(topic_arn, 'Policy', json.dumps(policy))
+        self.boto3_sns_client.set_topic_attributes(
+            TopicArn=topic_arn, AttributeName='Policy', AttributeValue=json.dumps(policy))
 
     def enable_bucket_notifications(self, topic_arn):
         notification_configuration = {
