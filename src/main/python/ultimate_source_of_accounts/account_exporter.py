@@ -18,7 +18,7 @@ class S3Uploader(object):
         self.allowed_ips = allowed_ips or []
         self.allowed_aws_account_ids = allowed_aws_account_ids or []
         self.s3_conn = boto.s3.connect_to_region(BUCKET_REGION)
-        self.boto3_s3_client = boto3.client('s3')
+        self.boto3_s3_client = boto3.client('s3', region_name=BUCKET_REGION)
         self.sns_conn = boto.sns.connect_to_region(BUCKET_REGION)
 
     def setup_infrastructure(self):
