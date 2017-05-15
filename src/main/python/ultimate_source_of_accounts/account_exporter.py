@@ -33,9 +33,11 @@ class S3Uploader(object):
     def create_S3_bucket(self):
         """ Create a new S3 bucket if bucket not exists else nothing """
         try:
-            self.s3_conn.create_bucket(self.bucket_name, location=BUCKET_REGION)
+            self.boto3_s3_client.create_bucket(
+                Bucket=self.bucket_name,
+                CreateBucketConfiguration={'LocationConstraint': BUCKET_REGION})
             logging.debug("Created new AWS S3 bucket with name '%s'", self.bucket_name)
-        except boto.exception.S3CreateError as e:
+        except Exception as e:
             logging.debug("Could not create S3 bucket '%s': %s", self.bucket_name, e)
 
     def set_S3_permissions(self):
