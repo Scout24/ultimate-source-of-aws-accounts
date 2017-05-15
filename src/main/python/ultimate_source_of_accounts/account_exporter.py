@@ -19,6 +19,7 @@ class S3Uploader(object):
         self.allowed_aws_account_ids = allowed_aws_account_ids or []
         self.s3_conn = boto.s3.connect_to_region(BUCKET_REGION)
         self.boto3_s3_client = boto3.client('s3', region_name=BUCKET_REGION)
+        self.boto3_sns_client = boto3.client('sns', region_name=BUCKET_REGION)
         self.sns_conn = boto.sns.connect_to_region(BUCKET_REGION)
 
     def setup_infrastructure(self):
@@ -82,8 +83,8 @@ class S3Uploader(object):
         logging.debug("AWS S3 bucket '%s' now has policy: '%s'", self.bucket_name, policy)
 
     def create_sns_topic(self):
-        response = self.sns_conn.create_topic(self.bucket_name)
-        topic_arn = response['CreateTopicResponse']['CreateTopicResult']['TopicArn']
+        response = self.boto3_sns_client.create_topic(Name=self.bucket_name)
+        topic_arn = response['TopicArn']
         logging.info("Using SNS topic with arn '%s'", topic_arn)
 
         return topic_arn
