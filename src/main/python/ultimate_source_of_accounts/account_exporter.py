@@ -143,25 +143,34 @@ class S3Uploader(object):
                                                                    NotificationConfiguration=notification_configuration)
 
     def get_routing_rules(self):
-        routing_rules = boto.s3.website.RoutingRules()
-        for suffix in ['json', 'yaml']:
-            condition = boto.s3.website.Condition(key_prefix=suffix)
-            redirect = boto.s3.website.Redirect(replace_key_prefix='accounts.{0}'.format(suffix))
-            routing_rules.add_rule(boto.s3.website.RoutingRule(condition, redirect))
-        return routing_rules
+        return [
+            {
+             'Condition': {'KeyPrefixEquals': 'yaml'},
+             'Redirect': {'ReplaceKeyPrefixWith': 'accounts.yaml'}
+            },
+            {
+             'Condition': {'KeyPrefixEquals': 'json'},
+             'Redirect': {'ReplaceKeyPrefixWith': 'accounts.json'}
+            }]
 
     def setup_S3_webserver(self):
-        bucket = self.s3_conn.get_bucket(self.bucket_name)
-
-        index_key = bucket.new_key('accounts.json')
-        index_key.content_type = 'application/json'
-
-        # now set the website configuration for our bucket
-        bucket.configure_website(suffix='accounts.json', routing_rules=self.get_routing_rules())
-        logging.debug("Website configuration was setup for AWS S3 bucket '%s'", self.bucket_name)
+        self.boto3_s3_client.put_bucket_website(
+                Bucket=self.bucket_name,
+                WebsiteConfiguration={
+                    'IndexDocument': {'Suffix': 'accounts.json'},
+                    'RoutingRules': self.get_routing_rules()
+                })
 
     def upload_to_S3(self, upload_data):
         for key_name, content in upload_data.items():
-            self.boto3_s3_client.put_object(Bucket=self.bucket_name, Key=key_name, Body=content
+            if key_name.endswith('json'):
+                content_type = 'application/json'
+            elif key_name.endswith('yaml'):
+                content_type = 'application/yaml'
+            else:
+                content_type = None
+            self.boto3_s3_client.put_object(
+                Bucket=self.bucket_name, Key=key_name,
+                Body=content, ContentType=content_type)
             logging.debug("Uploaded to AWS S3 bucket '%s': "
                           "key '%s' and content '%s'", self.bucket_name, key_name, content)
