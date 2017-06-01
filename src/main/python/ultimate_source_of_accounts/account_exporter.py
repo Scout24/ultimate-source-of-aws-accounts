@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function, absolute_import, division
-import boto.s3
-import boto.exception
-import boto.sns
 import json
 import logging
 
@@ -17,10 +14,8 @@ class S3Uploader(object):
         self.bucket_name = bucket_name
         self.allowed_ips = allowed_ips or []
         self.allowed_aws_account_ids = allowed_aws_account_ids or []
-        self.s3_conn = boto.s3.connect_to_region(BUCKET_REGION)
         self.boto3_s3_client = boto3.client('s3', region_name=BUCKET_REGION)
         self.boto3_sns_client = boto3.client('sns', region_name=BUCKET_REGION)
-        self.sns_conn = boto.sns.connect_to_region(BUCKET_REGION)
 
     def setup_infrastructure(self):
         topic_arn = self.create_sns_topic()
@@ -139,8 +134,9 @@ class S3Uploader(object):
                 }
             ]
         }
-        self.boto3_s3_client.put_bucket_notification_configuration(Bucket=self.bucket_name,
-                                                                   NotificationConfiguration=notification_configuration)
+        self.boto3_s3_client.put_bucket_notification_configuration(
+                Bucket=self.bucket_name,
+                NotificationConfiguration=notification_configuration)
 
     def get_routing_rules(self):
         return [
