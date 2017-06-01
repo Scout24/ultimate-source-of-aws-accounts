@@ -80,8 +80,8 @@ class S3Uploader(object):
             ]
         }
 
-        bucket = self.s3_conn.get_bucket(self.bucket_name)
-        bucket.set_policy(json.dumps(policy))
+        bucket_policy = boto3.resource('s3').BucketPolicy(self.bucket_name)
+        bucket_policy.put(Policy=json.dumps(policy))
         logging.debug("AWS S3 bucket '%s' now has policy: '%s'", self.bucket_name, policy)
 
     def create_sns_topic(self):
