@@ -61,7 +61,7 @@ class AccountExporterTest(TestCase):
         self.s3_uploader.create_S3_bucket()
 
         response = client.get_object(Bucket=self.bucket_name, Key='foobar')
-        self.assertEqual('This is a test of USofA', response['Body'].read())
+        self.assertEqual('This is a test of USofA', response['Body'].read().decode("utf-8"))
 
     @skip("Wait for https://github.com/spulec/moto/issues/971 to be fixed")
     @mock_s3
@@ -83,7 +83,7 @@ class AccountExporterTest(TestCase):
         self.s3_uploader.upload_to_S3(upload_data)
 
         response = client.get_object(Bucket=self.bucket_name, Key="foo")
-        result = response['Body'].read()
+        result = response['Body'].read().decode("utf-8")
 
         self.assertEqual(result, "bar")
 
