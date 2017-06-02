@@ -164,7 +164,7 @@ class S3Uploader(object):
             elif key_name.endswith('yaml'):
                 content_type = 'application/yaml'
             else:
-                content_type = None
+                content_type = 'application/text'
             self.boto3_s3_client.put_object(
                 Bucket=self.bucket_name, Key=key_name,
                 Body=content, ContentType=content_type)
