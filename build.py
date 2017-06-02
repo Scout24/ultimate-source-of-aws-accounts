@@ -20,6 +20,8 @@ version = '1.1'
 @init
 def set_properties(project):
     project.set_property('install_dependencies_upgrade', True)
+    # Work around https://github.com/pybuilder/pybuilder/pull/318
+    project.set_property('cram_run_test_from_target', False)
     # Ensure we have assertLogs
     project.build_depends_on("unittest2>=0.7")
     project.build_depends_on("moto")
