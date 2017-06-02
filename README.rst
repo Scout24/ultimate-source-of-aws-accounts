@@ -6,6 +6,9 @@
 .. image:: https://coveralls.io/repos/ImmobilienScout24/ultimate-source-of-aws-accounts/badge.png?branch=master
     :alt: Coverage status
     :target: https://coveralls.io/r/ImmobilienScout24/ultimate-source-of-aws-accounts?branch=master
+    
+===============================
+ultimate-source-of-aws-accounts
+===============================
 
-# ultimate-source-of-aws-accounts
 Ultimate source of IS24 AWS accounts
