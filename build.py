@@ -24,7 +24,8 @@ def set_properties(project):
     project.set_property('cram_run_test_from_target', False)
     # Ensure we have assertLogs
     project.build_depends_on("unittest2>=0.7")
-    project.build_depends_on("moto")
+    # needed until moto>=0.4.32 is released
+    project.build_depends_on('git+https://github.com/spulec/moto.git@master#egg=moto')
     project.depends_on("mock")
     project.depends_on("yamlreader")
     project.depends_on("pyyaml")
