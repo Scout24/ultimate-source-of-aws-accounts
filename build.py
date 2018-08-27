@@ -28,7 +28,8 @@ def set_properties(project):
     project.depends_on("moto")
     project.depends_on("yamlreader")
     project.depends_on("pyyaml")
-    project.depends_on("boto3")
+    # pin version to workaround https://github.com/spulec/moto/issues/1793
+    project.depends_on("boto3==1.7.80")
     project.depends_on("docopt")
     project.depends_on("six")
     project.depends_on("python-dateutil<2.7.0")
