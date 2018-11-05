@@ -25,11 +25,12 @@ def set_properties(project):
     # Ensure we have assertLogs
     project.build_depends_on("unittest2>=0.7")
     project.depends_on("mock")
-    project.depends_on("moto")
     project.depends_on("yamlreader")
     project.depends_on("pyyaml")
-    # pin version to workaround https://github.com/spulec/moto/issues/1793
-    project.depends_on("boto3==1.7.80")
+    # pin moto and boto dependencies due to https://github.com/spulec/moto/issues/1793#issue-354038417
+    project.depends_on("moto==1.3.6")
+    project.depends_on("boto3==1.7.84")
+    project.depends_on("botocore==1.10.84")
     project.depends_on("docopt")
     project.depends_on("six")
     project.depends_on("python-dateutil<2.7.0")
