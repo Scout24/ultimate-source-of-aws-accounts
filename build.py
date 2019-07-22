@@ -34,6 +34,7 @@ def set_properties(project):
     project.depends_on("docopt")
     project.depends_on("six")
     project.depends_on("python-dateutil<2.7.0")
+    project.depends_on("docutils==0.14")
 
     project.set_property('distutils_console_scripts', ['ultimate-source-of-accounts=ultimate_source_of_accounts.cli:main'])
     project.set_property('flake8_break_build', True)
