@@ -5,7 +5,8 @@
 Tool to upload/check a list of your AWS accounts to an S3 bucket
 
 Usage:
-    ultimate-source-of-accounts --import=<data-directory> [--allowed-ip=<IP>...] <destination-bucket-name> [--verbose]
+    ultimate-source-of-accounts --import=<data-directory> [--organization-id=<ORG_ID>] [--allowed-ip=<IP>...]
+    <destination-bucket-name> [--verbose]
     ultimate-source-of-accounts --check-billing=<billing-bucket-name> <destination-bucket-name> [--verbose]
 
 Options:
