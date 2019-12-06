@@ -10,10 +10,11 @@ BUCKET_REGION = "eu-west-1"
 
 
 class S3Uploader(object):
-    def __init__(self, bucket_name, allowed_ips=None, allowed_aws_account_ids=None):
+    def __init__(self, bucket_name, allowed_ips=None, allowed_aws_account_ids=None, allowed_organization_id=None):
         self.bucket_name = bucket_name
         self.allowed_ips = allowed_ips or []
         self.allowed_aws_account_ids = allowed_aws_account_ids or []
+        self.allowed_organization_id = allowed_organization_id
         self.boto3_s3_client = boto3.client('s3', region_name=BUCKET_REGION)
         self.boto3_sns_client = boto3.client('sns', region_name=BUCKET_REGION)
 
@@ -50,7 +51,7 @@ class S3Uploader(object):
                     "arn:aws:s3:::{0}".format(self.bucket_name)
                 ],
                 "Principal": {
-                    "AWS": self.allowed_aws_account_ids
+                    "AWS": "*" if self.allowed_organization_id else self.allowed_aws_account_ids
                 }
             }, {
                 "Action": [
@@ -74,6 +75,12 @@ class S3Uploader(object):
             }
             ]
         }
+        if self.allowed_organization_id:
+            policy["Statement"][0]["Condition"] = {
+                "StringEquals": {
+                    "aws:PrincipalOrgID": self.allowed_organization_id
+                }
+            }
 
         bucket_policy = boto3.resource('s3').BucketPolicy(self.bucket_name)
         bucket_policy.put(Policy=json.dumps(policy))
@@ -110,10 +117,16 @@ class S3Uploader(object):
                 "sns:Subscribe"
             ],
             "Principal": {
-                "AWS": self.allowed_aws_account_ids
+                "AWS": "*" if self.allowed_organization_id else self.allowed_aws_account_ids
             },
             "Resource": topic_arn
         }
+        if self.allowed_organization_id:
+            allow_subscribe_to_all_acconts["Condition"] = {
+                "StringEquals": {
+                    "aws:PrincipalOrgID": self.allowed_organization_id
+                }
+            }
         policy = {
             "Version": "2012-10-17",
             "Statement": [

@@ -13,6 +13,7 @@
   Options:
     -h --help                             Show this.
     --allowed-ip=IP                       IP with access to the destination bucket, can be used multiple times
+    --organization-id=ORG_ID              AWS Org ID to add to policies instead of individual account IDs
     --check-billing=<billing-bucket-name> Check Billing account
     -v --verbose                          Log more stuff
     --import=<data-directory>             Import account list from directory

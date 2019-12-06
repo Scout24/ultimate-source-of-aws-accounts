@@ -136,6 +136,62 @@ class AccountExporterTest(TestCase):
         }
         self.assertEqual(expected_policy, json.loads(actual_policy))
 
+    @mock_s3
+    def test_set_permissions_for_s3_bucket_with_org_id(self):
+        self.s3_uploader.allowed_organization_id = "my-org-id"
+        client = boto3.client('s3', region_name=BUCKET_REGION)
+        client.create_bucket(Bucket=self.bucket_name)
+
+        self.s3_uploader.set_S3_permissions()
+
+        actual_policy = client.get_bucket_policy(Bucket=self.bucket_name)['Policy']
+        expected_policy = {
+            "Version": "2012-10-17",
+            "Statement": [{
+                "Action": [
+                    "s3:GetBucketWebsite",
+                    "s3:GetObject",
+                    "s3:ListBucket"
+                ],
+                "Effect": "Allow",
+                "Resource": [
+                    "arn:aws:s3:::{0}/*".format(self.bucket_name),
+                    "arn:aws:s3:::{0}".format(self.bucket_name)
+                ],
+                "Principal": {
+                    "AWS": "*"
+                },
+                "Condition": {
+                    "StringEquals": {
+                        "aws:PrincipalOrgID": "my-org-id"
+                    }
+                }
+            },
+                {
+                    "Action": [
+                        "s3:GetBucketWebsite",
+                        "s3:GetObject",
+                        "s3:ListBucket"
+                    ],
+                    "Effect": "Allow",
+                    "Resource": [
+                        "arn:aws:s3:::{0}/*".format(self.bucket_name),
+                        "arn:aws:s3:::{0}".format(self.bucket_name)
+                    ],
+                    "Condition": {
+                        "IpAddress": {
+                            "aws:SourceIp": self.allowed_ips
+                        }
+                    },
+                    "Principal": {
+                        "AWS": "*"
+                    }
+                }
+            ]
+        }
+        self.assertEqual(expected_policy, json.loads(actual_policy))
+        self.s3_uploader.allowed_organization_id = None
+
     @mock_sns
     def test_create_sns_topic_if_none_existing(self):
         topic_arn = self.s3_uploader.create_sns_topic()
@@ -193,3 +249,53 @@ class AccountExporterTest(TestCase):
         created_policy = json.loads(response['Attributes']['Policy'])
 
         self.assertEqual(created_policy, expected_policy)
+
+    @mock_sns
+    def test_set_topic_policy_with_org_id(self):
+        self.s3_uploader.allowed_organization_id = "my-org-id"
+        topic_arn = self.s3_uploader.create_sns_topic()
+        expected_policy = {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Sid": "allow_s3_events",
+                    "Effect": "Allow",
+                    "Action": [
+                        "sns:Publish"
+                    ],
+                    "Principal": {
+                        "AWS":"*"
+                    },
+                    "Resource": topic_arn,
+                    "Condition": {
+                        "ArnLike": {
+                            "aws:SourceArn": "arn:aws:s3:*:*:{0}".format(self.bucket_name)
+                        }
+                    }
+                },{
+                    "Sid": "allow_subscribe_to_all_acconts",
+                    "Effect": "Allow",
+                    "Action": [
+                        "sns:Subscribe"
+                    ],
+                    "Principal": {
+                        "AWS": "*"
+                    },
+                    "Resource": topic_arn,
+                    "Condition": {
+                        "StringEquals": {
+                            "aws:PrincipalOrgID": "my-org-id"
+                        }
+                    }
+                }
+            ]
+        }
+
+        self.s3_uploader.set_sns_topic_policy(topic_arn)
+
+        client = boto3.client('sns', region_name=BUCKET_REGION)
+        response = client.get_topic_attributes(TopicArn=topic_arn)
+        created_policy = json.loads(response['Attributes']['Policy'])
+
+        self.assertEqual(created_policy, expected_policy)
+        self.s3_uploader.allowed_organization_id = None

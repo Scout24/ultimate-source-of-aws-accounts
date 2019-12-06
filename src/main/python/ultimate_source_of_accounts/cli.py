@@ -11,6 +11,7 @@ Usage:
 Options:
   -h --help                             Show this.
   --allowed-ip=IP                       IP with access to the destination bucket, can be used multiple times
+  --organization-id=ORG_ID              AWS Org ID to add to policies instead of individual account IDs
   --check-billing=<billing-bucket-name> Check Billing account
   -v --verbose                          Log more stuff
   --import=<data-directory>             Import account list from directory
@@ -33,7 +34,7 @@ def check_billing(billing_bucket_name, destination_bucket_name):
     sys.exit(1)
 
 
-def upload(data_directory, destination_bucket_name, allowed_ips=None):
+def upload(data_directory, destination_bucket_name, allowed_ips=None, allowed_organization_id=None):
     allowed_ips = allowed_ips or []
 
     try:
@@ -46,7 +47,8 @@ def upload(data_directory, destination_bucket_name, allowed_ips=None):
     our_account_ids = [account['id'] for account in account_data.values()]
     uploader = S3Uploader(destination_bucket_name,
                           allowed_ips=allowed_ips,
-                          allowed_aws_account_ids=our_account_ids)
+                          allowed_aws_account_ids=our_account_ids,
+                          allowed_organization_id=allowed_organization_id)
 
     uploader.setup_infrastructure()
     uploader.upload_to_S3(data_to_upload)
@@ -60,9 +62,11 @@ def _main(arguments):
     else:
         try:
             allowed_ips = arguments['--allowed-ip']
+            organization_id = arguments.get('--organization-id')
             data_directory = arguments['--import']
             destination_bucket_name = arguments['<destination-bucket-name>']
-            upload(data_directory, destination_bucket_name, allowed_ips=allowed_ips)
+            upload(data_directory, destination_bucket_name, allowed_ips=allowed_ips,
+                   allowed_organization_id=organization_id)
         except Exception:
             logging.exception("Failed to upload data: ")
             raise
