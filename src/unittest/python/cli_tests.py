@@ -54,7 +54,7 @@ class UploadTest(TestCase):
                 "bucketname42",
                 allowed_ips=["123", "345"],
                 allowed_aws_account_ids=['42'],
-                allowed_organization_id=None)
+                allowed_organization_ids=None)
 
         mock_exporter_instance.setup_infrastructure.assert_called_once_with()
         mock_exporter_instance.upload_to_S3.assert_called_once_with({'foo': 'bar'})

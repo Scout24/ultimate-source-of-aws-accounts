@@ -138,7 +138,7 @@ class AccountExporterTest(TestCase):
 
     @mock_s3
     def test_set_permissions_for_s3_bucket_with_org_id(self):
-        self.s3_uploader.allowed_organization_id = "my-org-id"
+        self.s3_uploader.allowed_organization_ids = ["my-org-id-1", "my-org-id-2"]
         client = boto3.client('s3', region_name=BUCKET_REGION)
         client.create_bucket(Bucket=self.bucket_name)
 
@@ -163,7 +163,7 @@ class AccountExporterTest(TestCase):
                 },
                 "Condition": {
                     "StringEquals": {
-                        "aws:PrincipalOrgID": "my-org-id"
+                        "aws:PrincipalOrgID": ["my-org-id-1", "my-org-id-2"]
                     }
                 }
             },
@@ -190,7 +190,7 @@ class AccountExporterTest(TestCase):
             ]
         }
         self.assertEqual(expected_policy, json.loads(actual_policy))
-        self.s3_uploader.allowed_organization_id = None
+        self.s3_uploader.allowed_organization_ids = None
 
     @mock_sns
     def test_create_sns_topic_if_none_existing(self):
@@ -252,7 +252,7 @@ class AccountExporterTest(TestCase):
 
     @mock_sns
     def test_set_topic_policy_with_org_id(self):
-        self.s3_uploader.allowed_organization_id = "my-org-id"
+        self.s3_uploader.allowed_organization_ids = ["my-org-id"]
         topic_arn = self.s3_uploader.create_sns_topic()
         expected_policy = {
             "Version": "2012-10-17",
@@ -284,7 +284,7 @@ class AccountExporterTest(TestCase):
                     "Resource": topic_arn,
                     "Condition": {
                         "StringEquals": {
-                            "aws:PrincipalOrgID": "my-org-id"
+                            "aws:PrincipalOrgID": ["my-org-id"]
                         }
                     }
                 }
@@ -298,4 +298,4 @@ class AccountExporterTest(TestCase):
         created_policy = json.loads(response['Attributes']['Policy'])
 
         self.assertEqual(created_policy, expected_policy)
-        self.s3_uploader.allowed_organization_id = None
+        self.s3_uploader.allowed_organization_ids = None

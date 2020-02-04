@@ -5,14 +5,14 @@
 Tool to upload/check a list of your AWS accounts to an S3 bucket
 
 Usage:
-    ultimate-source-of-accounts --import=<data-directory> [--organization-id=<ORG_ID>] [--allowed-ip=<IP>...]
+    ultimate-source-of-accounts --import=<data-directory> [--organization-id=<ORG_ID>...] [--allowed-ip=<IP>...]
     <destination-bucket-name> [--verbose]
     ultimate-source-of-accounts --check-billing=<billing-bucket-name> <destination-bucket-name> [--verbose]
 
 Options:
   -h --help                             Show this.
   --allowed-ip=IP                       IP with access to the destination bucket, can be used multiple times
-  --organization-id=ORG_ID              AWS Org ID to add to policies instead of individual account IDs
+  --organization-id=ORG_ID              AWS Org ID to add to policies instead of individual account IDs, can be used multiple times
   --check-billing=<billing-bucket-name> Check Billing account
   -v --verbose                          Log more stuff
   --import=<data-directory>             Import account list from directory
@@ -35,7 +35,7 @@ def check_billing(billing_bucket_name, destination_bucket_name):
     sys.exit(1)
 
 
-def upload(data_directory, destination_bucket_name, allowed_ips=None, allowed_organization_id=None):
+def upload(data_directory, destination_bucket_name, allowed_ips=None, allowed_organization_ids=None):
     allowed_ips = allowed_ips or []
 
     try:
@@ -49,7 +49,7 @@ def upload(data_directory, destination_bucket_name, allowed_ips=None, allowed_or
     uploader = S3Uploader(destination_bucket_name,
                           allowed_ips=allowed_ips,
                           allowed_aws_account_ids=our_account_ids,
-                          allowed_organization_id=allowed_organization_id)
+                          allowed_organization_ids=allowed_organization_ids)
 
     uploader.setup_infrastructure()
     uploader.upload_to_S3(data_to_upload)
@@ -63,11 +63,11 @@ def _main(arguments):
     else:
         try:
             allowed_ips = arguments['--allowed-ip']
-            organization_id = arguments.get('--organization-id')
+            organization_ids = arguments.get('--organization-id')
             data_directory = arguments['--import']
             destination_bucket_name = arguments['<destination-bucket-name>']
             upload(data_directory, destination_bucket_name, allowed_ips=allowed_ips,
-                   allowed_organization_id=organization_id)
+                   allowed_organization_ids=organization_ids)
         except Exception:
             logging.exception("Failed to upload data: ")
             raise
