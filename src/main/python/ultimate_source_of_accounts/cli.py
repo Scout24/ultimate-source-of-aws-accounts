@@ -12,7 +12,7 @@ Usage:
 Options:
   -h --help                             Show this.
   --allowed-ip=IP                       IP with access to the destination bucket, can be used multiple times
-  --organization-id=ORG_ID              AWS Org ID to add to policies instead of individual account IDs, can be used multiple times
+  --organization-id=ORG_ID              AWS Org ID instead of individual account IDs, can be used multiple times
   --check-billing=<billing-bucket-name> Check Billing account
   -v --verbose                          Log more stuff
   --import=<data-directory>             Import account list from directory
@@ -35,13 +35,19 @@ def check_billing(billing_bucket_name, destination_bucket_name):
     sys.exit(1)
 
 
-def upload(data_directory, destination_bucket_name, allowed_ips=None, allowed_organization_ids=None):
+def upload(
+        data_directory,
+        destination_bucket_name,
+        allowed_ips=None,
+        allowed_organization_ids=None):
     allowed_ips = allowed_ips or []
 
     try:
         account_data = read_directory(data_directory)
     except Exception as e:
-        raise Exception("Failed to read data directory '{0}': {1} ".format(data_directory, e))
+        raise Exception(
+            "Failed to read data directory '{0}': {1} ".format(
+                data_directory, e))
 
     data_to_upload = get_converted_aws_accounts(account_data)
 
@@ -66,8 +72,11 @@ def _main(arguments):
             organization_ids = arguments.get('--organization-id')
             data_directory = arguments['--import']
             destination_bucket_name = arguments['<destination-bucket-name>']
-            upload(data_directory, destination_bucket_name, allowed_ips=allowed_ips,
-                   allowed_organization_ids=organization_ids)
+            upload(
+                data_directory,
+                destination_bucket_name,
+                allowed_ips=allowed_ips,
+                allowed_organization_ids=organization_ids)
         except Exception:
             logging.exception("Failed to upload data: ")
             raise
