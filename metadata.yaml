@@ -1,0 +1,22 @@
+id: ultimate-source-of-aws-accounts 
+name: ultimate-source-of-aws-accounts 
+description: Check and convert usofa files and then upload them to S3. Is used by https://github.com/Scout24/is24-aws-account-list
+type: configuration
+product: aws-accounts
+lifecycle: ga
+links:
+- type: public
+  title: usofa-web
+  address: https://usofa.cloud.scout24.com
+- type: repository
+  title: is24-aws-account-list
+  address: https://github.com/Scout24/is24-aws-account-list
+availability: true
+confidentiality: company-internal
+exposure: 
+  - platform
+integrity: true
+vertical: s24 
+owners:
+  - developerexperience@scout24.com 
+platform: aws
