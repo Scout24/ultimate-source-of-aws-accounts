@@ -145,7 +145,10 @@ class S3Uploader(object):
                     'TopicArn': topic_arn,
                     'Events': ['s3:ObjectCreated:*']
                 }
-            ]
+            ],
+            # put_bucket_notification_configuration replaces the whole
+            # configuration, so S3 -> EventBridge delivery must be part of it.
+            'EventBridgeConfiguration': {}
         }
         self.boto3_s3_client.put_bucket_notification_configuration(
                 Bucket=self.bucket_name,

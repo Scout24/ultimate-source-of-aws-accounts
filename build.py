@@ -27,10 +27,11 @@ def set_properties(project):
     project.depends_on("mock")
     project.depends_on("yamlreader")
     project.depends_on("pyyaml")
-    # pin moto and boto dependencies due to https://github.com/spulec/moto/issues/1793#issue-354038417
-    project.depends_on("moto==1.3.6")
-    project.depends_on("boto3==1.7.84")
-    project.depends_on("botocore==1.10.84")
+    # Latest releases supporting Python 3.6; botocore needs S3
+    # EventBridgeConfiguration support (added in late 2021).
+    project.depends_on("moto==4.0.13")
+    project.depends_on("boto3==1.23.10")
+    project.depends_on("botocore==1.26.10")
     project.depends_on("docopt")
     project.depends_on("six")
     project.depends_on("python-dateutil<2.7.0")
