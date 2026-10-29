@@ -4,6 +4,7 @@ from __future__ import print_function, absolute_import, division
 from unittest2 import TestCase, skip
 from moto import mock_s3, mock_sns
 import boto3
+from botocore.stub import Stubber
 import json
 import os
 import logging
@@ -43,7 +44,8 @@ class AccountExporterTest(TestCase):
     @mock_s3
     def test_create_S3_bucket_if_bucket_exists(self):
         client = boto3.client('s3', region_name=BUCKET_REGION)
-        client.create_bucket(Bucket=self.bucket_name)
+        client.create_bucket(Bucket=self.bucket_name,
+                             CreateBucketConfiguration={'LocationConstraint': BUCKET_REGION})
 
         with self.assertLogs(level=logging.DEBUG) as cm:
             self.s3_uploader.create_S3_bucket()
@@ -54,7 +56,8 @@ class AccountExporterTest(TestCase):
     def test_create_S3_bucket_must_not_delete_data(self):
         client = boto3.client('s3', region_name=BUCKET_REGION)
 
-        client.create_bucket(Bucket=self.bucket_name)
+        client.create_bucket(Bucket=self.bucket_name,
+                             CreateBucketConfiguration={'LocationConstraint': BUCKET_REGION})
         client.put_object(Bucket=self.bucket_name, Key='foobar',
                           Body='This is a test of USofA')
 
@@ -76,7 +79,8 @@ class AccountExporterTest(TestCase):
     @mock_s3
     def test_upload_to_S3(self):
         client = boto3.client('s3', region_name=BUCKET_REGION)
-        client.create_bucket(Bucket=self.bucket_name)
+        client.create_bucket(Bucket=self.bucket_name,
+                             CreateBucketConfiguration={'LocationConstraint': BUCKET_REGION})
 
         upload_data = {"foo": "bar"}
 
@@ -90,7 +94,8 @@ class AccountExporterTest(TestCase):
     @mock_s3
     def test_set_permissions_for_s3_bucket(self):
         client = boto3.client('s3', region_name=BUCKET_REGION)
-        client.create_bucket(Bucket=self.bucket_name)
+        client.create_bucket(Bucket=self.bucket_name,
+                             CreateBucketConfiguration={'LocationConstraint': BUCKET_REGION})
 
         self.s3_uploader.set_S3_permissions()
 
@@ -140,7 +145,8 @@ class AccountExporterTest(TestCase):
     def test_set_permissions_for_s3_bucket_with_org_id(self):
         self.s3_uploader.allowed_organization_ids = ["my-org-id-1", "my-org-id-2"]
         client = boto3.client('s3', region_name=BUCKET_REGION)
-        client.create_bucket(Bucket=self.bucket_name)
+        client.create_bucket(Bucket=self.bucket_name,
+                             CreateBucketConfiguration={'LocationConstraint': BUCKET_REGION})
 
         self.s3_uploader.set_S3_permissions()
 
@@ -191,6 +197,30 @@ class AccountExporterTest(TestCase):
         }
         self.assertEqual(expected_policy, json.loads(actual_policy))
         self.s3_uploader.allowed_organization_ids = None
+
+    def test_enable_bucket_notifications_for_sns_and_eventbridge(self):
+        # Stubber validates the request against botocore's S3 model, so this
+        # also fails on botocore versions without EventBridgeConfiguration.
+        client = boto3.client('s3', region_name=BUCKET_REGION)
+        self.s3_uploader.boto3_s3_client = client
+        topic_arn = "arn:aws:sns:{0}:123456789012:{1}".format(BUCKET_REGION, self.bucket_name)
+        expected_params = {
+            'Bucket': self.bucket_name,
+            'NotificationConfiguration': {
+                'TopicConfigurations': [
+                    {
+                        'TopicArn': topic_arn,
+                        'Events': ['s3:ObjectCreated:*']
+                    }
+                ],
+                'EventBridgeConfiguration': {}
+            }
+        }
+
+        with Stubber(client) as stubber:
+            stubber.add_response('put_bucket_notification_configuration', {}, expected_params)
+            self.s3_uploader.enable_bucket_notifications(topic_arn)
+            stubber.assert_no_pending_responses()
 
     @mock_sns
     def test_create_sns_topic_if_none_existing(self):
